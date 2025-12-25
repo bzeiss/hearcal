@@ -1,6 +1,6 @@
-# HearCal: Perceptual Headphone Calibration for Mixing
+# HearCal: Perceptual Subjective DIY Loudness Matching for Headphone Mixing
 
-HearCal is a Python-based tool designed to identify possible gaps between objective acoustic targets and your individual hearing. It allows you to create a personalized calibration profile for mixing music on headphones that may (or may not) help to personalize the mixing experience to your hearing (caveats below).
+HearCal is a Python-based tool built to experimentally identify possible gaps between objective acoustic targets and your individual hearing by DIY loudness matching. It allows you to create a personalized calibration profile for mixing music on headphones that may (or may not) help to personalize the mixing experience to your hearing (caveats below).
 
 ## 1. Introduction
 
@@ -234,7 +234,7 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
    * Load the **TB Equalizer Pro** VST/AU plugin.
    * **Crucial:** Place the plugin at the **very end** of your master monitoring chain (after any other processing).
    * Select your new preset. 
-   * Listen to high-quality reference tracks and begin mixing. Your monitoring environment is now optimized for the unique combination of your headphones and your personal hearing.
+   * Listen to high-quality reference tracks and begin mixing. Continue with step 7 and validate and refine.
 
 7. Verifying Translation & Making Adjustments
 
