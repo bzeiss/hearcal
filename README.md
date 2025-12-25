@@ -31,7 +31,7 @@ HearCal is a cross-platform command-line application with a Terminal User Interf
 
 ### Credits
 
-This workflow was inspired by the research and methods shared by [MixphonesUK](https://www.youtube.com/@MixPhonesUK).
+This general EQ workflow was inspired by the research and methods shared by [MixphonesUK](https://www.youtube.com/@MixPhonesUK). The correction workflow is inspired by a well known closed headphone system for mixing.
 
 ---
 
