@@ -11,7 +11,7 @@ Standard headphone targets are based on "standard" listeners with healthy hearin
 * **Phase 1 (Calibration)**: Uses **Instantaneous A/B Switching** to find equal-loudness thresholds across 31 ISO frequency bands, compared against a 1000Hz reference anchor.
 * **Phase 2 (Verification)**: Employs a **Sequential Pulse methodology** (Anchor → Silence → Test). This resets the ear's automatic gain control and prevents the brain from "adapting" to the sound, which can otherwise skew results. This phase includes toggle modes to shuffle frequencies or test in ascending order to ensure a truly "flat" subjective response.
 
-The tool is designed to give an indication where the problem might be, when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. 
+The tool is designed to give an indication where the problem might be, when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. It's purely a DIY approach and does not replace an audiogram from an audiologist in a controlled environment. It might just as well lead to curves that overcompensate and make things worse. Please be aware of this fact.
 
    > **⚠️ Recommended Workflow for Mixing**  
    > Start with your headphone's Harman EQ *without* personal hearing correction. Only use HearCal if you experience consistent translation problems. Then A/B test to verify the correction actually helps your mixes.
