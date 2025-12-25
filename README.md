@@ -31,7 +31,7 @@ HearCal is a cross-platform command-line application with a Terminal User Interf
 
 ### Credits
 
-This workflow was inspired by the research and methods shared by [MixphonesUK](https://www.youtube.com/@MixPhonesUK). HearCal builds upon those concepts by adding a systematic hearing-correction layer and a dedicated calibration interface.
+This workflow was inspired by the research and methods shared by [MixphonesUK](https://www.youtube.com/@MixPhonesUK).
 
 ---
 
