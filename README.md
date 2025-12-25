@@ -250,7 +250,7 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
    * Select your new preset. 
    * Listen to high-quality reference tracks and begin mixing. Continue with step 7 and validate and refine.
 
-7. Verifying Translation & Making Adjustments
+## 5. Verifying Translation & Making Adjustments
 
 This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point. It may also throw you off totally. Every person compensates differently for what he/she hears. It might be enough to look at the adjustment graph and just take the results as hint what to check out by manually EQing the normal Harman Over-Ear 2018 correction curve for your headphone to try something new. 
 
@@ -260,6 +260,6 @@ For tuning further, maybe try also [Owliophile](https://owliophile.com/) with an
 
 The whole approach should be considered experimental. Feel free to share your experiences in the discussion area and possibly your knowledge from experience or research.
 
-## 5. Ideas
+## 6. Ideas
 * Allow the option to use band-limited noise (e.g., 1/3-oct noise) (or maybe even band-limited music?) for a test tone. Sine tones can exaggerate narrow resonances and standing-wave effects in the ear canal and are not how broadband music is perceived.
 
