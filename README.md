@@ -2,6 +2,8 @@
 
 HearCal is a Python-based tool built to experimentally identify possible gaps between objective acoustic targets and your individual hearing by DIY loudness matching. It allows you to create a personalized calibration profile for mixing music on headphones that may (or may not) help to personalize the mixing experience to your hearing (caveats below).
 
+---
+
 ## 1. Introduction
 
 The goal of HearCal is to generate a **personalized hearing profile** (a "delta curve"). The delta is a subjective equal‑loudness matching curve at one playback level, not an audiogram. This curve accounts for the unique characteristics of your ears and your specific headphones. When combined with industry-standard targets—such as the **Harman Over-Ear 2018** curve, it creates an equalization profile tailored specifically to how you perceive sound. It’s specific to your headphone fit at the time of testing.
