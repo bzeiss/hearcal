@@ -75,6 +75,8 @@ While 85 dB is the technical sweet spot, it can be fatiguing over a long 8-hour 
 * **Small Rooms/Headphones:** Due to ear fatigue, many professionals prefer monitoring at **76 dB to 80 dB SPL** for the bulk of a session.
 * **The "Check" Method:** It is common practice to do the majority of the work at a moderate level (75–80 dB) and then turn the volume up to **85 dB** specifically for "checking" the low-end and high-end balance before turning it back down.
 
+The most important point is: choose one SPL loudness and calibrate to the loudness you mix at. If you mix at different levels, use different calibration profiles.
+
 #### Headphone Calibration with an SPL Meter
 To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** and a **Slow** response time.
 
@@ -217,4 +219,6 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
    * Select your new preset. 
    * Listen to high-quality reference tracks and begin mixing. Your monitoring environment is now optimized for the unique combination of your headphones and your personal hearing.
 
+7. Personal adjustments to translation
 
+This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point.
