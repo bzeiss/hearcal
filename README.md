@@ -11,7 +11,7 @@ Standard headphone targets are based on "standard" listeners with healthy hearin
 * **Phase 1 (Calibration)**: Uses **Instantaneous A/B Switching** to find equal-loudness thresholds across 31 ISO frequency bands, compared against a 1000Hz reference anchor.
 * **Phase 2 (Verification)**: Employs a **Sequential Pulse methodology** (Anchor → Silence → Test). This helps reduce short-term loudness adaptation and prevents the brain from "adapting" to the sound, which can otherwise skew results. This phase includes toggle modes to shuffle frequencies or test in ascending order to ensure a truly "flat" subjective response.
 
-The tool is designed to give an indication where the problem might be, when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. It's purely a DIY approach and does not replace an audiogram from an audiologist in a controlled environment. It might just as well lead to curves that overcompensate and make things worse. Please be aware of this fact.
+The tool is designed to give an indication of where perceptual deviations might exist when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. It's purely a DIY approach and does not replace an audiogram from an audiologist in a controlled environment. It might just as well lead to curves that overcompensate and make things worse. Please be aware of this fact.
 
    > **⚠️ Recommended Workflow for Mixing**  
    > Start with your headphone's Harman EQ *without* personal hearing correction. Only use HearCal if you experience consistent translation problems. Then A/B test to verify the correction actually helps your mixes.
@@ -44,7 +44,7 @@ To implement the HearCal workflow, you will need:
 * **REW (Room EQ Wizard)**: Used for arithmetic.
 * **Target Curve:** The Harman Over-Ear 2018 (or your preferred AutoEQ target) in .csv or .txt format.
 * **Equalizer Software**: **[Toneboosters Equalizer Pro](https://www.toneboosters.com/tb_equalizer_pro.html)**: Recommended for cross-platform support. A converter from EqualizerAPO to TB format is included in this repo.
-  ** *Alternatives*: Apulsoft **[ApQualizer2](https://www.apulsoft.ch/apqualizr2/)** supports import of EqualizerAPO equalizer profiles directly. Fabfilter **Pro-Q3/4** requires the multication of the Q factor by 1.41!
+  ** *Alternatives*: Apulsoft **[ApQualizer2](https://www.apulsoft.ch/apqualizr2/)** supports import of EqualizerAPO equalizer profiles directly. Fabfilter **Pro-Q3/4** requires the multiplication of the Q factor by 1.41!
 
 ---
 
@@ -108,7 +108,7 @@ python hearcal.py
 ```
 #### Phase 1: Calibration (A/B Comparison)
 
-The objective of this phase is to establish a baseline by matching the perceived volume of various frequencies to a constant 1000Hz anchor.
+The objective of this phase is to establish a baseline by matching the perceived volume of various frequencies to a constant 1000Hz anchor. 31 ISO bands are used as a compromise between perceptual resolution, calibration time, and listener fatigue.
 
 1. **Reference Level**: Ensure your hardware is set to your marked calibration level (e.g., **85dB SPL**).
 2. **Start Audio**: Press **`[SPACE]`** to begin generating sound.
@@ -117,6 +117,8 @@ The objective of this phase is to establish a baseline by matching the perceived
 5. **Navigate Bands**: Use **`[LEFT/RIGHT]`** cursor keys to move to the next frequency band. Perform this adjustment for all 31 ISO bands.
 
 #### Phase 2: Verification (The "Reality Check")
+
+Phase 1 establishes an initial estimate. Phase 2 is where perceptual bias is actively challenged, and results should not be considered reliable unless they hold up under shuffle and pulse-only testing.
 
 Press **`[V]`** to enter the refinement screen. This phase uses a more advanced methodology to eliminate "loudness adaptation"—the phenomenon where your brain adjusts to a sound, making it seem quieter than it actually is.
 
