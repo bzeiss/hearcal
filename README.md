@@ -150,7 +150,7 @@ The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizar
 1. **Import Data**: Open REW (instructions based on V5.40 Beta 111). Go to **File -> Import -> Import Frequency Response** and load your three core CSV files:
    * **HearCal Delta**: The file you just saved from the HearCal app.
    * **Target Curve**: For over-ear headphones and mixing, the **Harman Over-Ear 2018** is recommended. You can find these at the [AutoEQ git repo](https://github.com/jaakkopasanen/AutoEq/tree/master/targets).
-   * **Headphone Measurement**: Import a measurement for your specific headphone model from a trusted source, such as [oratory1990](https://github.com/jaakkopasanen/AutoEq/tree/master/results/oratory1990).
+   * **Headphone Measurement**: Import a measurement for your specific headphone model from a trusted source, such as [oratory1990](https://github.com/jaakkopasanen/AutoEq/tree/master/results/oratory1990). Note that getting an external measurement is pretty debatable and doubts about this are very reasonable. External measurements can easily be wrong. Ideally, you have the measurement of your individual headphone.
   
    Your REW main window should now look like this:
    <img width="1299" height="661" alt="image" src="https://github.com/user-attachments/assets/5afd89da-990f-4439-b284-df8af6e13384" />
@@ -201,7 +201,7 @@ The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizar
    * Ideally, manually adjust the filters on the left to match the headphone measurement to your corrected target. 
    * If you use the **AutoEQ** button, ensure the results meet quality criteria: **broad Q factors**, **minimal gain changes**, and a **low number of bands**. Avoid over-correcting; use headphones that already have a relatively good frequency response.
   
-   > ️⚠️ Note that large deviations in any band (.e.g, >6 dB) might indicate the need for professional audiometry rather than DIY correction.
+   > ️⚠️ Note that large deviations in any band (.e.g, >6 dB) might indicate the need for professional audiometry rather than DIY correction. Do not attempt to boost or cut by large margins.
 
    * When satisfied, hit **"Export"** on the left to save the **EqualizerAPO** `.txt` file.
 
@@ -240,12 +240,14 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
 
 7. Verifying Translation & Making Adjustments
 
-This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point. It may also throw you off totally. It might be enough to look at the adjustment graph and just take the results as hint what to check out by manually EQing the normal Harman Over-Ear 2018 correction curve for your headphone. Always check your mix translations on multiple monitoring systems and adjust your EQ accordingly for what you have found out. Every person compensates differently for what he/she hears.
+This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point. It may also throw you off totally. Every person compensates differently for what he/she hears. It might be enough to look at the adjustment graph and just take the results as hint what to check out by manually EQing the normal Harman Over-Ear 2018 correction curve for your headphone to try something new. 
 
-Consider running calibration on two different days and comparing results. Large differences between sessions suggest measurement noise rather than true hearing characteristics.
+It may also be worthwhile to repeat the tests spaced apart on multiple days, compare the results and then calculate an average delta. Always check your mix translations on multiple monitoring systems and adjust your EQ accordingly for what you have found out. Large differences between sessions suggest measurement noise rather than true hearing characteristics. 
 
 For tuning further, maybe try also [Owliophile](https://owliophile.com/) with and without corrective EQ.
 
+The whole approach should be considered experimental. Feel free to share your experiences in the discussion area and possibly your knowledge from experience or research.
+
 ## 5. Ideas
-* Allow the option to use band-limited noise (e.g., 1/3-oct noise) for a test tone.
+* Allow the option to use band-limited noise (e.g., 1/3-oct noise) (or maybe even band-limited music?) for a test tone. Sine tones can exaggerate narrow resonances and standing-wave effects in the ear canal and are not how broadband music is perceived.
 
