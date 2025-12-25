@@ -4,7 +4,7 @@ HearCal is a Python-based tool built to experimentally identify possible gaps be
 
 ## 1. Introduction
 
-The goal of HearCal is to generate a **personalized hearing profile** (a "delta curve"). This curve accounts for the unique characteristics of your ears and your specific headphones. When combined with industry-standard targets—such as the **Harman Over-Ear 2018** curve, it creates an equalization profile tailored specifically to how you perceive sound. 
+The goal of HearCal is to generate a **personalized hearing profile** (a "delta curve"). The delta is a subjective equal‑loudness matching curve at one playback level, not an audiogram. This curve accounts for the unique characteristics of your ears and your specific headphones. When combined with industry-standard targets—such as the **Harman Over-Ear 2018** curve, it creates an equalization profile tailored specifically to how you perceive sound. It’s specific to your headphone fit at the time of testing.
 
 Standard headphone targets are based on "standard" listeners with healthy hearing. However, because sensitivity varies with age, noise exposure, and physiology, your perception often deviates from these averages. HearCal identifies these deviations through a two-phase process:
 
@@ -66,9 +66,9 @@ pip install textual numpy sounddevice
 
 ### Step 1: Adjust your headphones to the calibration loudness
 
-Perceived loudness is not consistent across all frequencies at all volume levels. This phenomenon is described by the **Fletcher-Munson curves** (and the modern ISO 226 standard). What is important: there is a specific "sweet spot" level for mixing where our hearing is most linear, meaning frequency-dependent adjustments are less drastic.
+Perceived loudness is not consistent across all frequencies at all volume levels. This phenomenon is described by the **Fletcher-Munson curves** (and the modern ISO 226 standard). What is important: there is a theoretical "sweet spot" level for mixing where our hearing is most linear, meaning frequency-dependent adjustments are less drastic than at others. 
 
-The ideal level for mixing with the most balanced perception of all frequencies—while remaining safe and bearable—is generally considered to be **83 dB to 85 dB SPL**.
+The ideal level, according to this often cited work, for mixing with the most balanced perception of all frequencies—while remaining safe and bearable—is generally considered to be **83 dB to 85 dB SPL** as a room calibration convention. To my knowledge, there is no universal standard like this for headphones currently. So these values may or may not apply.
 
 #### Why 85 dB?
 Human hearing is naturally non-linear. At low volumes (around 40–60 dB), your ears are much less sensitive to low and high frequencies, causing the midrange (especially 3–4 kHz) to sound disproportionately loud. As volume increases, these curves "flatten out," allowing you to perceive the bass and treble more accurately in relation to the mids.
@@ -77,21 +77,21 @@ Human hearing is naturally non-linear. At low volumes (around 40–60 dB), your 
 * **The Industry Standard:** The 85 dB SPL figure is the recognized standard for cinema and large professional studios. At this level, the frequency response is flat enough to make accurate EQ decisions without endangering your hearing.
 
 #### Practical Considerations for "Bearability"
-While 85 dB is the technical sweet spot, it can be fatiguing over a long 8-hour session. Many engineers follow these practical guidelines:
+While 85 dB is the theoretical sweet spot for room calibration, it can be fatiguing over a long 8-hour session. Many engineers follow these practical guidelines:
 
 * **Small Rooms/Headphones:** Due to ear fatigue, many professionals prefer monitoring at **76 dB to 80 dB SPL** for the bulk of a session.
-* **The "Check" Method:** It is common practice to do the majority of the work at a moderate level (75–80 dB) and then turn the volume up to **85 dB** specifically for "checking" the low-end and high-end balance before turning it back down.
+* **The "Check" Method:** It is common practice to do the majority of the work at a moderate level (75–80 dB) and then turn the volume up to **85 dB** specifically for "checking" the low-end and high-end balance before turning it back down. Bear also in mind that some headphones may show more clarity and bass punch at higher levels 80-85 dB. It's unclear whether there is real scientific work on this.
 
-The most important point is: choose one SPL loudness and calibrate to the loudness you mix at. If you mix at different levels, use different calibration profiles.
+The most important point is: choose one SPL loudness and calibrate to the loudness you mix at. If you mix at different levels, like 76 to 80 dB for long session and 85 dB for checking, you should likely perform the test multiple times at exactly these differing levels as the test assumes one specific loudness and adjusts to it.
 
 #### Headphone Calibration with an SPL Meter
-To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** and a **Slow** response time. Be aware that the approach shown below will not yield exact results and may easily be off by a few dBs.
+To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** or **C-weighting** and a **Slow** response time. Be aware that the approach shown below will not yield exact results and may easily be off by a few dBs.
 
-While C-weighting is often used for room calibration, **A-weighting** is recommended here for a specific reason:
+While C-weighting is often used for room calibration, **A-weighting** is sometimes recommended by experienced mixers here for a specific reason:
 * **Sub-bass filtering:** Sub-bass produces a massive amount of physical energy that registers high on a meter, but for many people, it is much less "present" in their actual hearing than the mids and highs. 
 * **Focusing the Measurement:** By using A-weighting (which rolls off the extreme lows), you effectively filter out that sub-bass energy from the measurement. This ensures you are calibrating the loudness based on the frequencies where your hearing is most sensitive, preventing the sub-bass from "tricking" the meter into thinking the volume is louder than it feels.
 
-C-weighting may be used if you prefer aligning physical energy rather than perceptual loudness, but consistency is more important than choice.
+C-weighting may be used if you prefer aligning physical energy rather than perceptual loudness, but consistency is more important than choice. The jury is still out on this.
 
 **Calibration Procedure:**
 1.  **Set Meter:** Select **A-Weighting** and **Slow** response (this averages the "peaks" and "valleys" of the noise over 1 second for a steady reading).
@@ -163,6 +163,19 @@ The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizar
 
    <img width="980" height="197" alt="image" src="https://github.com/user-attachments/assets/a69a7290-bf8f-4d18-b856-5bb17842a261" />
    <img width="341" height="308" alt="image" src="https://github.com/user-attachments/assets/4487277e-bc29-4d18-9879-7f4f9c1bd611" />
+   
+   The resulting curve is a *hypothesis* for a personalized target.
+   
+   Important:
+   - The HearCal delta is tied to *this listener + this headphone + this fit/seal*, at the chosen playback level.
+   - Because the delta can include parts of the headphone’s own frequency response, combining it with a separate headphone measurement can double-count some features (i.e., you may correct the same deviation twice).
+   
+   Practical implications:
+   - Treat the “Target + Delta” approach as experimental and validate by A/B testing and mix translation.
+   - In some cases, applying the delta as a small, smoothed “preference / monitoring correction” on top of an existing headphone EQ may work better than using “Target + Delta” to derive a new measurement-based EQ.
+   - If you want the delta to represent *mostly the listener residual*, first EQ the headphone close to the chosen target (e.g., with an oratory1990/AutoEQ profile), then run HearCal with that EQ active.
+
+   Safety / sanity check: If your delta (or resulting EQ) suggests large or narrow corrections (e.g., >6 dB in any band or very high-Q “spikes”), treat it as unreliable—retest on another day, smooth/average results, and limit EQ to a few broad bands (prefer ≤3–6 dB total adjustment).
 
 3. **Rename & Categorize**: You now have a personalized target curve. Right-click it and rename it to something like `HOE2018_corrected_username_headphones`. 
    > **Important:** This calibration is unique to the specific combination of **your ears** and **these specific headphones**. It will not be accurate for other users or other headphone models.
