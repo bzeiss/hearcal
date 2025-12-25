@@ -45,8 +45,7 @@ To implement the HearCal workflow, you will need:
 * **PIP Packages**: `textual`, `numpy`, and `sounddevice`.
 * **REW (Room EQ Wizard)**: Used for arithmetic.
 * **Target Curve:** The Harman Over-Ear 2018 (or your preferred AutoEQ target) in .csv or .txt format.
-* **Equalizer Software**: **[Toneboosters Equalizer Pro](https://www.toneboosters.com/tb_equalizer_pro.html)**: Recommended for cross-platform support. A converter from EqualizerAPO to TB format is included in this repo.
-  ** *Alternatives*: Apulsoft **[ApQualizer2](https://www.apulsoft.ch/apqualizr2/)** supports import of EqualizerAPO equalizer profiles directly. Fabfilter **Pro-Q3/4** requires the multiplication of the Q factor by 1.41!
+* **Equalizer Software**: **[Toneboosters Equalizer Pro](https://www.toneboosters.com/tb_equalizer_pro.html)**: Recommended for cross-platform support. A converter from EqualizerAPO to TB format is included in this repo. *Alternatives*: Apulsoft **[ApQualizer2](https://www.apulsoft.ch/apqualizr2/)** supports import of EqualizerAPO equalizer profiles directly. Fabfilter **Pro-Q3/4** requires the multiplication of the Q factor by 1.41!
 
 ---
 
