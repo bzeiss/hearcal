@@ -53,7 +53,7 @@ To implement the HearCal workflow, you will need:
 
 ## 3. Installation
 
-1. **Install Python**: Download from [python.org](https://www.python.org/).
+1. **Install Python**: Download from [python.org](https://www.python.org/) for Windows. On MacOS, I think it is already preinstalled. You may have to look this up. On Linux, install Python with the package manager of your distribution.
 2. **Install Dependencies**: Open your terminal or command prompt and run:
 ```bash
 pip install textual numpy sounddevice
