@@ -89,11 +89,15 @@ While C-weighting is often used for room calibration, **A-weighting** is recomme
 * **Sub-bass filtering:** Sub-bass produces a massive amount of physical energy that registers high on a meter, but for many people, it is much less "present" in their actual hearing than the mids and highs. 
 * **Focusing the Measurement:** By using A-weighting (which rolls off the extreme lows), you effectively filter out that sub-bass energy from the measurement. This ensures you are calibrating the loudness based on the frequencies where your hearing is most sensitive, preventing the sub-bass from "tricking" the meter into thinking the volume is louder than it feels.
 
+C-weighting may be used if you prefer aligning physical energy rather than perceptual loudness, but consistency is more important than choice.
+
 **Calibration Procedure:**
 1.  **Set Meter:** Select **A-Weighting** and **Slow** response (this averages the "peaks" and "valleys" of the noise over 1 second for a steady reading).
 2.  **Signal:** Play **Pink Noise** through one side of your headphones.
 3.  **Target:** Position your SPL meter (or phone app) against the headphone driver and adjust your hardware volume until you hit your chosen level (**79–85 dB**).
 4.  **Hardware Marker:** Ideally, connect your amp to a fixed line-out (so levels aren't tied to an interface knob) and put a physical marker on your headphone amp volume knob. **This is now your reference level for the entire calibration.**
+
+Do not perform long calibration sessions at 85 dB. Take breaks every 10–15 minutes.
 
 ### Step 2: Run HearCal
 
