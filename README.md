@@ -131,7 +131,7 @@ Press **`[V]`** to enter the refinement screen. This phase uses a more advanced 
 * **Shuffle Mode [R]**: Press **`[R]`** to randomize the order of the frequency bands. This is the most critical step; it prevents your brain from "expecting" the next sound and forces an honest comparison between unrelated frequencies (e.g., comparing 60Hz directly after 8kHz).
 * **Ascending Mode [A]**: Press **`[A]`** to restore the standard frequency order for a final sweep to ensure the loudness feels smooth and linear from bottom to top.
 
-It is possibly a good idea to use the ascending mode in the end, but starting at 1000Hz and then going to the left, and then starting again at 1000Hz going to the right. That way, the final pass verifies the loudness of the neighboring frequencies from the reference point. In my (so far short) experience, the shuffled loudness comparisons when the frequency jumps between the frequencies are high, are pretty hard to judge.
+It is possibly a good idea to use the ascending mode in the end, by starting at 1000Hz and going to the left, and then again starting at 1000Hz going to the right. That way, the final pass verifies the loudness of the neighboring frequencies from the reference point. In my (so far short) experience, the shuffled loudness comparisons when the frequency jumps between the frequencies are high, are hard to judge.
 
 #### Phase 3: Save and Exit
 
