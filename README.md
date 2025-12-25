@@ -1,33 +1,30 @@
 # HearCal: Perceptual Headphone Calibration for Mixing
 
-HearCal is a Python-based diagnostic and refinement tool designed to bridge the gap between objective acoustic targets and your personal hearing when calibrating headphones for mixing music on headphones.
+HearCal is a Python-based tool designed to bridge the gap between objective acoustic targets and your individual hearing. It allows you to create a personalized calibration profile for mixing music on headphones.
 
 ## 1. Introduction
 
-The goal of HearCal is to create a **personalized hearing profile** (delta curve) that accounts for the specific characteristics of your ears and your headphones for the purpose of creating an equalizer profile that adjusts a headphone-specific measure to a specific target curve like the Harman Over-Ear 2018 curve **as well as your individual hearing profile on these headphones**, for the purpose of mixing music, for example.
+The goal of HearCal is to generate a **personalized hearing profile** (a "delta curve"). This curve accounts for the unique characteristics of your ears and your specific headphones. When combined with industry-standard targets—such as the **Harman Over-Ear 2018** curve, it creates an equalization profile tailored specifically to how you perceive sound.
 
-Standard headphone targets, like the Harman Ove-Ear 2018 target, are based on "standard" listeners with good hearing. As hearing sensitivity varies with age, noise exposure or health, your perception often deviates from these baselines. HearCal uses a two-phase process to identify these deviations:
+Standard headphone targets are based on "standard" listeners with healthy hearing. However, because sensitivity varies with age, noise exposure, and physiology, your perception often deviates from these averages. HearCal identifies these deviations through a two-phase process:
 
-* **Phase 1 (Calibration)**: Uses **Instantaneous A/B Switching** to find equal-loudness thresholds across 31 ISO frequency bands compared to a reference anchor tone (1000Hz by default).
-* **Phase 2 (Verification)**: Employs a **Sequential Pulse methodology** (Anchor → Silence → Test) to reset the ear's automatic gain control and prevent your brain from "adapting" to the sound, which can skew results. In this verification step, there multiple toggle modes that let you also disable the sequential pulsing and let you compare the adjusted levels side by side, shuffle the frequencies around so that you don't always compare the same two frequency bands next to each other and an ascending order toggle in order to deliberately compare frequency bands next to each other.
+* **Phase 1 (Calibration)**: Uses **Instantaneous A/B Switching** to find equal-loudness thresholds across 31 ISO frequency bands, compared against a 1000Hz reference anchor.
+* **Phase 2 (Verification)**: Employs a **Sequential Pulse methodology** (Anchor → Silence → Test). This resets the ear's automatic gain control and prevents the brain from "adapting" to the sound, which can otherwise skew results. This phase includes toggle modes to shuffle frequencies or test in ascending order to ensure a truly "flat" subjective response.
 
-By combining your HearCal delta with an objective target, you create a monitoring environment optimized for your specific hearing.
-
-HearCal is a Python based cross-platform command line application with a terminal user interface. It is designed that way to stay simple, be easy to adapt and low maintenance. You'll need some basic technical knowledge to run it and perform the overall calibration process for your headphones. It's not too hard though.
+HearCal is a cross-platform command-line application with a Terminal User Interface (TUI). It is designed to be lightweight, easy to adapt, and low-maintenance. While it requires basic technical knowledge to run, the calibration process itself is intuitive.
 
 <img width="815" height="637" alt="image" src="https://github.com/user-attachments/assets/86848267-ee4c-4589-9d91-d939629ae82b" />
 <img width="802" height="638" alt="image" src="https://github.com/user-attachments/assets/0a9869ad-6cb0-4bad-80dc-78b06c2ce572" />
 
-## Disclaimers
+### Project Status & Disclaimers
 
-* I'm not an acoustics expert, not an psychoacoustics expert and not a physicist. I hope the calibration method used here is reasonably sound. If not, you're welcome to let me know how to improve it.
-* I generally don't know what I'm doing. Don't complain about it.
-* A lot of the stuff here is vibe-coded and AI generated as a starting point or AI improved. If you don't like it, you may keep it to yourself. If you find real errors, please let me know.
-* If you have improvements to the script, feel free to create merge requests. Be aware that I want this repo and script to stay simple and maintainable. This is not the place for scope creep. However, I want the calibration to be as effective as possible with the least amount of work.
+* Experimental Tool: This project is a functional implementation of psychoacoustic principles, but I am not an acoustics professional or physicist. It is a "community-driven" attempt to improve monitoring accuracy.
+* Contributions: If you have expertise in psychoacoustics or Python and see room for improvement, merge requests are welcome! The goal is to keep the tool effective yet simple and maintainable.
+* AI Integration: Parts of this documentation and code were developed or refined with the assistance of AI to ensure clarity and provide a starting point for development.
 
-## Credits
+### Credits
 
-A lot of the content here was shared first by [MixphonesUK](https://www.youtube.com/@MixPhonesUK). I have just tried to add the hearing correction on top and documented the approach for the hearing correction. Be sure to check out the playlists on that channel and support them if it brings value to you.
+This workflow was inspired by the research and methods shared by [MixphonesUK](https://www.youtube.com/@MixPhonesUK). HearCal builds upon those concepts by adding a systematic hearing-correction layer and a dedicated calibration interface.
 
 ---
 
@@ -35,25 +32,26 @@ A lot of the content here was shared first by [MixphonesUK](https://www.youtube.
 
 To implement the HearCal workflow, you will need:
 
-* An SPL meter that allows adjustment to A-weighting and C-weighting
-* Headphone amp (don't bother with all this without a good one)
+* **SPL Meter:** Capable of **A-weighting** and **C-weighting** (a smartphone app can work, though a dedicated meter is more accurate).
+* **Headphone Amplifier:** A clean, high-quality amp is recommended to ensure your headphones have sufficient headroom.
 * **Python 3.10+**: The core environment for the script.
 * **PIP Packages**: `textual`, `numpy`, and `sounddevice`.
-* **REW (Room EQ Wizard)**: Used for trace arithmetic and generating EQ filters.
-* **[Toneboosters Equalizer Pro](https://www.toneboosters.com/tb_equalizer_pro.html)**: My personal preference for final EQ application as it works on all platforms including Linux, it is pretty powerful and doesn't cost a lot. A converter from EqualizerAPO format to TB Equalizer Pro is provided in this repository. You may also use other equalizers though. Apulsoft [ApQualizer2](https://www.apulsoft.ch/apqualizr2/) supports EqualizerAPO equalizer profiles directly, but I don't have any experience with it. Pro-Q requires the multication of the Q factor by 1.41!
-* **Target Curve**: The **Harman Over-Ear 2018** (or any other preferred Oratory1990/AutoEQ target) in `.csv` or `.txt` format.
+* **REW (Room EQ Wizard)**: Used for arithmetic.
+* **Target Curve:** The Harman Over-Ear 2018 (or your preferred AutoEQ target) in .csv or .txt format.
+* **Equalizer Software**: **[Toneboosters Equalizer Pro](https://www.toneboosters.com/tb_equalizer_pro.html)**: Recommended for cross-platform support. A converter from EqualizerAPO to TB format is included in this repo.
+  ** *Alternatives*: Apulsoft **[ApQualizer2](https://www.apulsoft.ch/apqualizr2/)** supports import of EqualizerAPO equalizer profiles directly. Fabfilter **Pro-Q3/4** requires the multication of the Q factor by 1.41!
 
 ---
 
 ## 3. Installation
 
 1. **Install Python**: Download from [python.org](https://www.python.org/).
-2. **Install Dependencies**: Run the following in your terminal:
+2. **Install Dependencies**: Open your terminal or command prompt and run:
 ```bash
 pip install textual numpy sounddevice
 ```
 
-3. **Download HearCal**: Save `hearcal.py` to your local machine or clone/download the git repository.
+3. **Download HearCal**: Clone this repository or download the hearcal.py script to a dedicated folder on your machine.
 
 ---
 
@@ -61,105 +59,162 @@ pip install textual numpy sounddevice
 
 ### Step 1: Adjust your headphones to the calibration loudness
 
-The loudness perceived by our ears does is not the same in all frequencies at all levels. This effect is described by the Fletcher-Munson curve (and the modern ISO 226 standard). You can read up on this [here](https://en.wikipedia.org/wiki/Equal-loudness_contour). What is important: there is a rough "best" level to mix music at, where frequency-dependant adjustments are not too drastic. The best level for mixing music with the most balanced (flattest) perception of all frequencies while remaining safe and bearable is generally considered to be 83 dB to 85 dB SPL.
+Perceived loudness is not consistent across all frequencies at all volume levels. This phenomenon is described by the **Fletcher-Munson curves** (and the modern ISO 226 standard). What is important: there is a specific "sweet spot" level for mixing where our hearing is most linear, meaning frequency-dependent adjustments are less drastic.
+
+The ideal level for mixing with the most balanced perception of all frequencies—while remaining safe and bearable—is generally considered to be **83 dB to 85 dB SPL**.
 
 #### Why 85 dB?
+Human hearing is naturally non-linear. At low volumes (around 40–60 dB), your ears are much less sensitive to low and high frequencies, causing the midrange (especially 3–4 kHz) to sound disproportionately loud. As volume increases, these curves "flatten out," allowing you to perceive the bass and treble more accurately in relation to the mids.
 
-Human hearing is naturally non-linear. At low volumes (around 40–60 dB), your ears are much less sensitive to low and high frequencies, causing the midrange (especially 3–4 kHz) to sound much louder. As the volume increases, these curves "flatten out," meaning you perceive the bass and treble more accurately in relation to the mids.
-
-* The "Flattest" Theoretical Level: The curves continue to flatten as volume increases toward the threshold of pain (120+ dB). However, mixing at 100+ dB is not "bearable" for more than a few minutes and will cause rapid ear fatigue and permanent hearing damage.
-* The Industry Standard: The 85 dB SPL figure is the recognized standard for cinema and large professional studios (often calibrated using the "K-System" developed by Bob Katz). At this level, the frequency response is flat enough to make accurate EQ decisions without needing to blast the speakers to dangerous levels.
+* **The "Flattest" Level:** The curves continue to flatten as volume increases toward the threshold of pain (120+ dB). However, mixing at 100+ dB is not bearable for more than a few minutes and will cause rapid ear fatigue and permanent hearing damage.
+* **The Industry Standard:** The 85 dB SPL figure is the recognized standard for cinema and large professional studios. At this level, the frequency response is flat enough to make accurate EQ decisions without endangering your hearing.
 
 #### Practical Considerations for "Bearability"
+While 85 dB is the technical sweet spot, it can be fatiguing over a long 8-hour session. Many engineers follow these practical guidelines:
 
-While 85 dB is the technical sweet spot for flatness, it can still be fatiguing over a long 8-hour session. Many engineers follow these practical guidelines:
+* **Small Rooms/Headphones:** Due to ear fatigue, many professionals prefer monitoring at **76 dB to 80 dB SPL** for the bulk of a session.
+* **The "Check" Method:** It is common practice to do the majority of the work at a moderate level (75–80 dB) and then turn the volume up to **85 dB** specifically for "checking" the low-end and high-end balance before turning it back down.
 
-* Because of ear fatigue, many professionals prefering headphone monitoring  at 76 dB to 80 dB SPL for the majority of the session.
-* The "Check": It is common practice to do the bulk of the mixing at a moderate level (75–80 dB) and then turn the volume up to 85 dB specifically for "checking" the low-end and high-end balance, before turning it back down to save your ears.
+#### Headphone Calibration with an SPL Meter
+To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** and a **Slow** response time.
 
-#### Headphone calibration with an SPL meter
+While C-weighting is often used for room calibration, **A-weighting** is recommended here for a specific reason:
+* **Sub-bass filtering:** Sub-bass produces a massive amount of physical energy that registers high on a meter, but for many people, it is much less "present" in their actual hearing than the mids and highs. 
+* **Focusing the Measurement:** By using A-weighting (which rolls off the extreme lows), you effectively filter out that sub-bass energy from the measurement. This ensures you are calibrating the loudness based on the frequencies where your hearing is most sensitive, preventing the sub-bass from "tricking" the meter into thinking the volume is louder than it feels.
 
-To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to A-weighting and a slow response time. While both weightings are designed to mimic human hearing, they are based on how we hear at very different volume levels.
+**Calibration Procedure:**
+1.  **Set Meter:** Select **A-Weighting** and **Slow** response (this averages the "peaks" and "valleys" of the noise over 1 second for a steady reading).
+2.  **Signal:** Play **Pink Noise** through one side of your headphones.
+3.  **Target:** Position your SPL meter (or phone app) against the headphone driver and adjust your hardware volume until you hit your chosen level (**79–85 dB**).
+4.  **Hardware Marker:** Ideally, connect your amp to a fixed line-out (so levels aren't tied to an interface knob) and put a physical marker on your headphone amp volume knob. **This is now your reference level for the entire calibration.**
 
-* C-weighting follows the "Loud" curve. It provides an honest representation of the total energy in the room, including the sub-bass.
-* A-weighting follows the "Quiet" curve. If you used A-weighting to calibrate your headphones to 85 dB, the meter would "ignore" much of the bass. 
-
-Your mileage may vary, but the sub-bass area produces a lot of energy and, for many, is much less present in hearing than lows, low-mids, mids and highs. As a result, it may be a good idea to filter them out in the loudness measurement for the calibration.
-
-When you are ready to calibrate your headphones, set your meter (or phone app) to the following:
-* Weighting: A 
-* Response/Speed: Slow (this averages the "peaks" and "valleys" of the sound over 1 second, giving you a steady number rather than a jumping needle).
-* Target: Aim for your chosen level (79–85 dB) while playing Pink Noise through one speaker at a time.
-
-Ideally, you'll make sure that you have connected your headphone amp to the line out or digitally to your audio interface (so that the levels are not tied to a knob on the audio interface) and the put a marker on your headphone amp.
-
-### Step 1: Run HearCal
+### Step 2: Run HearCal
 
 Launch the application from your terminal:
 
 ```bash
 python hearcal.py
 ```
+#### Phase 1: Calibration (A/B Comparison)
 
-1. **Reference Level**: Set hardware volume so the 1000Hz anchor is at a comfortable mixing level (ideally **85dB SPL** using an SPL meter, see above).
-2. **Calibration**: Use **[SPACE]** to play a continues sound. Press **[T]** to toggle between the reference tone (which always stays at the same level) and the test to (the tone of which you adjust the level). Use **[UP/DOWN]** cursor keys to adjust the level of the test tone (MODE: TESTING) until it matches the 1000Hz anchor in perceived loudness. The reference tone will always stay at the same level/loudness. Don't adjust the level of 1000 Hz, it is the reference tone. Use **[LEFT/RIGHT]** cursor keys to test the next band. Perform the level adjustment for all bands comparing the reference tone to the testing tone (by hitting T) and adjusting the level of the testing  tone until it matches for your ears.
-3. **Verification**: Press **[V]** for the refinement screen. It offers multiple ways to verify your level adjustments. The sequential pulses (auto-played on navigation) or "Anchor-Gap-Test" is used to "zero in" on the subjective weight of each band. In this mode, the 1000Hz base tone is played at the calibration level, then after one second pause, the test tone at the corresponding frequency is played level adjusted. If the second tone is louder than the first one, adjust the level down by pressing the **[DOWN]** cursor key. If the second tone is quieter than the first one, adjust the level up using the **[UP]** cursor key. Otherwise leave it as it is. Step through all frequencies using **[LEFT/RIGHT]**. When done Switch to the Pulse-Only moder by pressing **[P]**. In this mode, just the level adjusted pulse at the currently selected frequency band is played. Now step through all shuffled frequencies using **[LEFT/RIGHT]** and see whether you perceive the frequencies at equal loudness. If not, adjust with the **[UP/DOWN]** cursor keys. Then, press **[R]** to reshuffle the frequency order. Now, different frequencies are next to each other in this list. Again, step through the list from left to right to see whether you perceive them at equal loudness. You may repeat this step multiple times, ideally, with some hours inbetween each test. Don't overstress it and do too much in one sitting, your ears will hear differently at different times and days. Finally, press **[A]** to order the frequencies in ascending order for a final test whether the perceived loudness is even. When done, press **[ESC]** to go back to the main screen.
-4. **Save**: Press **[S]** to save your `hearing_profile.csv`.
+The objective of this phase is to establish a baseline by matching the perceived volume of various frequencies to a constant 1000Hz anchor.
 
-You don't have to leave the app open for multiple sessions. with **[L]** you can load the state of the last saved calibration back into the app.
+1. **Reference Level**: Ensure your hardware is set to your marked calibration level (e.g., **85dB SPL**).
+2. **Start Audio**: Press **`[SPACE]`** to begin generating sound.
+3. **Toggle Mode [T]**: Press **`[T]`** to switch between the **Reference Tone** (1000Hz, which never changes volume) and the **Test Tone** (the frequency you are currently adjusting).
+4. **Adjust Volume**: Use the **`[UP/DOWN]`** cursor keys to change the level of the test tone until it sounds exactly as loud as the 1000Hz reference.
+5. **Navigate Bands**: Use **`[LEFT/RIGHT]`** cursor keys to move to the next frequency band. Perform this adjustment for all 31 ISO bands.
 
-### Step 2: Integrate in REW
+#### Phase 2: Verification (The "Reality Check")
 
-The curve saved can be loaded as a measurement in [REW](https://www.roomeqwizard.com/). This is what we use to create the adjusted target curves and headphone correction profile now that we have the hearing correction delta data.
+Press **`[V]`** to enter the refinement screen. This phase uses a more advanced methodology to eliminate "loudness adaptation"—the phenomenon where your brain adjusts to a sound, making it seem quieter than it actually is.
 
-1. Import your **Harman Target**, **HearCal Delta** and **Headphone Measurement** CSVs into REW (I'm using REW V5.40 Beta 111). You can do that by File->Import->Import Frequency Response.
-   * Import your **HearCal Delta** (the file you have saved with hearcal).
-   * Import your curve target, for over-ear headphones and mixing, try Harman Over-Ear 2018. You can get these at the [AutoEQ git repo](https://github.com/jaakkopasanen/AutoEq/tree/master/targets).
-   * Import a headphone measurement for your specific headphone model. Use a source you trust. For example, the ones from [oratory1990](https://github.com/jaakkopasanen/AutoEq/tree/master/results/oratory1990).
+* **Sequential Pulse (Anchor → Gap → Test)**: By default, moving to a frequency in this mode plays the 1000Hz anchor, followed by a one-second silence, and then the test tone.
+* If the second tone sounds louder than the first, press **`[DOWN]`**.
+* If the second tone sounds quieter, press **`[UP]`**.
+
+* **Pulse-Only Mode [P]**: Press **`[P]`** to disable the anchor and play only the level-adjusted pulse of the current frequency. This helps you hear how a frequency sits in isolation. In this mode, step through the frequency bands by pressing **`[LEFT]`** and **`[RIGHT]`** and compare whether they are the perceived same loudness next to each other. If not, adjust them.
+* **Shuffle Mode [R]**: Press **`[R]`** to randomize the order of the frequency bands. This is the most critical step; it prevents your brain from "expecting" the next sound and forces an honest comparison between unrelated frequencies (e.g., comparing 60Hz directly after 8kHz).
+* **Ascending Mode [A]**: Press **`[A]`** to restore the standard frequency order for a final sweep to ensure the loudness feels smooth and linear from bottom to top.
+
+#### Phase 3: Save and Exit
+
+Once you are confident that every frequency band is perceived at an equal loudness:
+
+1. Press **`[S]`** to save your `hearing_profile.csv`.
+2. Press **`[ESC]`** to return to the main menu.
+
+*Note: You do not need to finish the calibration in one sitting. You can press **`[L]`** at any time to load your last saved state and continue refining your profile later.*
+
+### Step 3: Integrate in REW
+
+The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizard)](https://www.roomeqwizard.com/). This process allows us to combine your personal hearing delta with objective headphone measurements and target curves.
+
+1. **Import Data**: Open REW (instructions based on V5.40 Beta 111). Go to **File -> Import -> Import Frequency Response** and load your three core CSV files:
+   * **HearCal Delta**: The file you just saved from the HearCal app.
+   * **Target Curve**: For over-ear headphones and mixing, the **Harman Over-Ear 2018** is recommended. You can find these at the [AutoEQ git repo](https://github.com/jaakkopasanen/AutoEq/tree/master/targets).
+   * **Headphone Measurement**: Import a measurement for your specific headphone model from a trusted source, such as [oratory1990](https://github.com/jaakkopasanen/AutoEq/tree/master/results/oratory1990).
   
-   This is what it should look like:
+   Your REW main window should now look like this:
    <img width="1299" height="661" alt="image" src="https://github.com/user-attachments/assets/5afd89da-990f-4439-b284-df8af6e13384" />
 
-3. Now we add the hearcal correction delta to the target curve. To do that, hit "Arithmetic". As A, select your target curve that you want to adjust. As B, select your correction curve from hearcal. Select the "A + B" operation and hit "Generate".
+2. **Generate the Corrected Target**: We now add your hearing correction delta to the industry target curve. 
+   * Click the **"Arithmetic"** button in the All SPL tab.
+   * For **A**, select your target curve (e.g., Harman Over-Ear 2018).
+   * For **B**, select your HearCal delta curve.
+   * Select the **"A + B"** operation and hit **"Generate"**.
 
-   <img width="1288" height="201" alt="image" src="https://github.com/user-attachments/assets/06fb8ca9-8baf-48e1-9945-9e073a42e87a" />
+   <img width="980" height="197" alt="image" src="https://github.com/user-attachments/assets/a69a7290-bf8f-4d18-b856-5bb17842a261" />
    <img width="341" height="308" alt="image" src="https://github.com/user-attachments/assets/4487277e-bc29-4d18-9879-7f4f9c1bd611" />
 
-4. We now have a delta target curve that we can work with. Let's rename this by right-clicking it and changing the name to something like "HOE2018_corrected_username_headphones". Be aware, that this calibration is headphone-specific **and** user-specific. It will only work in this exact combination.
+3. **Rename & Categorize**: You now have a personalized target curve. Right-click it and rename it to something like `HOE2018_corrected_username_headphones`. 
+   > **Important:** This calibration is unique to the specific combination of **your ears** and **these specific headphones**. It will not be accurate for other users or other headphone models.
+   
    <img width="1297" height="658" alt="image" src="https://github.com/user-attachments/assets/048a0688-9a8b-43b2-ae9f-374c81318a5d" />
 
-5. Let's save the delta target curve. Left-click it to select it. Then go to the menus: File->Export->Export Measurement as Text. Make sure that you export the whole frequency range. I have no idea what a good smoothing is. Make sure the export units are dBFS and Space is used as delimiter. Click OK and save as TXT file.
+4. **Export the Corrected Target**: 
+   * Left-click your new corrected target to select it.
+   * Go to **File -> Export -> Export Measurement as Text**.
+   * Ensure you export the **whole frequency range**. (Standard smoothing is usually fine).
+   * Set **Export Units** to **dBFS** and **Delimiter** to **Space**. 
+   * Click OK and save it as a `.txt` file.
 
-<img width="737" height="851" alt="image" src="https://github.com/user-attachments/assets/a2183809-a98b-4e8e-bf43-dd9695cd7397" />
+   <img width="737" height="851" alt="image" src="https://github.com/user-attachments/assets/a2183809-a98b-4e8e-bf43-dd9695cd7397" />
 
-6. Let's now create an equalization for our headphones. Left-click your headphone measurement (like the ones from oratory1990). Open the EQ tools using the menus Tools->EQ. Open the Target Settings expansion panel on the right, select Target Type to None. Open the hearing corrected target curve we have jsut saved as the House curve. Click "Calculate target level from response" to align the target curve to the measurement.
+5. **Aligning in REW EQ Tool** (Only needed if you want to play around with the filters in the REQ EQ, skip otherwise): 
+   * Left-click your original headphone measurement (e.g., the oratory1990 file).
+   * Open the EQ tools via **Tools -> EQ**.
+   * In the **Target Settings** panel on the right, set **Target Type** to **None**.
+   * Open the **House Curve** panel and load the `.txt` file you just exported.
+   * Click **"Calculate target level from response"** to visually align the target curve to the measurement.
 
-<img width="1254" height="664" alt="image" src="https://github.com/user-attachments/assets/70d06be5-4511-4e55-b2d0-b7502b58b2c0" />
+   <img width="1254" height="664" alt="image" src="https://github.com/user-attachments/assets/70d06be5-4511-4e55-b2d0-b7502b58b2c0" />
 
-7. Let's now create a filter. REW also has equalization capabilities, but I haven't had too much good results with it. This may be due to lack of knowledge how to use it properly. Personally, I use [squig.lit](https://squig.link/) to create the filters. Open it, one the lower-right, remove all curves from the initialization using the X button on the right. Then hit the Equalizer tab on the left. On the left, remove the bands so that there are only like 4 or 5 bands left. Adjust the AutoEQ range to 20 to 20000.
+6. **Filter Generation via Squig.link**: 
+   While REW has internal EQ capabilities, many find [squig.link](https://squig.link/) more intuitive for creating final filters.
+   * Open Squig.link. In the lower-right, clear any default curves using the **X** button.
+   * Hit the **Equalizer** tab on the left. Remove bands so only 4 or 5 remain to start.
+   * Set the **AutoEQ range** to **20 to 20,000Hz**.
+   * Click **"Upload FR"** and upload your headphone measurement.
+   * Click **"Upload Target"** and upload your corrected target curve.
 
-<img width="1911" height="879" alt="image" src="https://github.com/user-attachments/assets/c7894203-5848-4c3d-a346-f130db647c84" />
+   <img width="1911" height="879" alt="image" src="https://github.com/user-attachments/assets/c7894203-5848-4c3d-a346-f130db647c84" />
 
-8. Click "Upload FR" and upload the headphone measurement, for example from oratory1990, here. You may also browse for headphones directly available on squig.link. The quality of the measurements may vary.
+7. **Optimize the EQ**: 
+   * Ideally, manually adjust the filters on the left to match the headphone measurement to your corrected target. 
+   * If you use the **AutoEQ** button, ensure the results meet quality criteria: **broad Q factors**, **minimal gain changes**, and a **low number of bands**. Avoid over-correcting; use headphones that already have a relatively good frequency response.
+   * When satisfied, hit **"Export"** on the left to save the **EqualizerAPO** `.txt` file.
 
-9. Click "Upload Target" and upload your corrected target curve here. It should now show both the headphone measurement and the target curve.
-<img width="1902" height="884" alt="image" src="https://github.com/user-attachments/assets/c82d519e-b7e5-4493-803a-92d1a1a1a24e" />
+   <img width="1912" height="887" alt="image" src="https://github.com/user-attachments/assets/0ba860b1-2071-48f8-958f-a97c1258bd6f" />
 
-10. Ideally, you'll now create a really well optimized EQ curve on the left to match the headphone measurement to the hearcal corrected target curve. You may also try to hit the AutoEQ button and see whether the filtering fulfils the quality criteria above, i.e. broad Q, low gain changes, little number of bands. Don't try to be to exact here and create a lot of filter bands, but use headphones that don't need a lot of correction and that have a good frequency response.
+8. **Final Considerations**: 
+   * You now have a TXT file containing EqualizerAPO filters.
+   * If using **FabFilter Pro-Q 3**, you must multiply the Q factor by **1.41** for the filters to behave correctly.
+   * Always use **minimal-phase filters** in your equalizer.
 
-11. When you are happy with the equalization, hit "Export" on the left".
-    
-<img width="1912" height="887" alt="image" src="https://github.com/user-attachments/assets/0ba860b1-2071-48f8-958f-a97c1258bd6f" />
+### Step 4: Create Equalizer Configuration
 
-12. You now have a TXT file containing so called EqualizerAPO filters. We need to bring this into an Equalizer now to use it. You may use a converter for your favorite equalizer, use the Toneboosters Equalizer Pro converter provided here (see below) or type in the values manually. In Pro-Q, you'll need an adjustment factor of 1.41 for the Q. Results between equalizers may vary. Always use minimal-phase filters.
+Once you have your EqualizerAPO filters from Squig.link, you need to load them into your equalizer. While you can type values manually, this repository includes a tool to convert them directly for **Toneboosters Equalizer Pro**.
 
-### Step 3: Create Equalizer Configuration
+1. **Open the Converter**: Navigate to the `apo_to_tbeqpro` directory in this repository and open the `apo_to_tbeqpro.html` file in any web browser.
+2. **Load Your Filters**: Click "Browse" and select the `.txt` file you exported from Squig.link.
+3. **Name Your Preset**: Adjust the "Name" field to identify your specific calibration (e.g., `HD600_HearCal_2025`).
+4. **Export**: Hit **"Download XML"**.
 
-1. Open the HTML file in the apo_to_tbeqpro directory "apo_to_tbeqpro.html"
-2. Browse for the file you have just exported from squig.link
-3. Adjust the name
-4. Hit "Download XML"
 <img width="1299" height="622" alt="image" src="https://github.com/user-attachments/assets/114e40d3-5001-4543-a958-4b57426e8138" />
-5. Place the XML file in the Toneboosters directory. For Windows, this is %APPDATA%\Toneboosters\TB Equalizer Pro_programs\User\Presets or however you want it organized there. On Linux, this is ~/.config/Toneboosters/TB Equalizer Pro_programs/User/Presets. On Mac probably something like ~/Library/Audio/Presets/ToneBoosters/TB Equalizer Pro_programs/User/Presets or /Library/Application Support/ToneBoosters/TB Equalizer Pro_programs/User/Presets or something similar. I don't have a Mac, so I won't know.
-6. That's it. Load of the VST plugin, please it last in the master chain, listen to some music with it and see whether your mixes get better or not.
+
+5. **Install the Preset**: Place the downloaded XML file into the Toneboosters user preset directory for your operating system:
+
+| Operating System | Directory Path |
+| :--- | :--- |
+| **Windows** | `%APPDATA%\Toneboosters\TB Equalizer Pro_programs\User\Presets` |
+| **Linux** | `~/.config/Toneboosters/TB Equalizer Pro_programs/User/Presets` |
+| **macOS** | `~/Library/Audio/Presets/ToneBoosters/TB Equalizer Pro_programs/User/Presets` (or similar Library path, not known exactly) |
+
+6. **Final Implementation**: 
+   * Load the **TB Equalizer Pro** VST/AU plugin.
+   * **Crucial:** Place the plugin at the **very end** of your master monitoring chain (after any other processing).
+   * Select your new preset. 
+   * Listen to high-quality reference tracks and begin mixing. Your monitoring environment is now optimized for the unique combination of your headphones and your personal hearing.
+
 
