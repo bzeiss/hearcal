@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EQ Pro ↔ EqualizerAPO Pro Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    textarea { font-family: 'Courier New', monospace; font-size: 13px; background-color: #fcfcfc !important; white-space: pre; overflow-x: auto; }
+    .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: none; margin-bottom: 2rem; }
+    .section-title { border-bottom: 2px solid #f0f0f0; margin-bottom: 1.5rem; padding-bottom: 0.5rem; color: #0d6efd; }
+    .error-banner { display: none; margin-top: 10px; margin-bottom: 10px; padding: 10px; }
+    label { font-weight: 600; color: #444; }
+    .btn-group-custom { display: flex; gap: 10px; justify-content: center; }
+    .doc-table th { background-color: #f8f9fa; width: 30%; }
+    .formula { font-family: monospace; background: #eee; padding: 2px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+
+  <div class="card p-4 bg-white" id="sectionA">
+    <h3 class="section-title">EqualizerAPO → TB Equalizer Pro (XML)</h3>
+    <div id="errorA" class="alert alert-danger error-banner"></div>
+    
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">1. Upload APO Config (.txt)</label>
+        <input type="file" id="fileInputA" class="form-control" accept=".txt">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">2. Preset Name</label>
+        <input id="presetNameA" class="form-control" value="Converted_from_APO">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Input (EqualizerAPO)</label>
+        <textarea id="inputTextA" class="form-control" rows="12"></textarea>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Output (ToneBoosters XML)</label>
+        <textarea id="outputTextA" class="form-control" rows="12" readonly></textarea>
+      </div>
+    </div>
+    <div class="text-center">
+      <button class="btn btn-primary px-5" onclick="downloadXML()">Download XML</button>
+    </div>
+  </div>
+
+  <div class="card p-4 bg-white" id="sectionB">
+    <h3 class="section-title">TB Equalizer Pro (XML) → EqualizerAPO</h3>
+    <div id="errorB" class="alert alert-danger error-banner"></div>
+
+    <div class="row">
+      <div class="col-md-12 mb-3">
+        <label class="form-label">1. Upload TB XML File</label>
+        <input type="file" id="fileInputB" class="form-control" accept=".xml">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Input (ToneBoosters XML)</label>
+        <textarea id="inputTextB" class="form-control" rows="10" placeholder="Paste XML here..."></textarea>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Output (EqualizerAPO Text)</label>
+        <textarea id="outputTextB" class="form-control" rows="10" readonly></textarea>
+      </div>
+    </div>
+    <div class="btn-group-custom">
+      <button class="btn btn-outline-secondary px-4" onclick="copyToClipboard()">Copy to Clipboard</button>
+      <button class="btn btn-success px-4" onclick="downloadAPOText()">Download export.txt</button>
+    </div>
+  </div>
+
+  <div class="card p-4 bg-white">
+    <h3 class="section-title">ToneBoosters XML Format Reference</h3>
+    <table class="table table-bordered doc-table">
+      <thead>
+        <tr>
+          <th>Attribute</th>
+          <th>Description & Calculation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OutGain</code></td>
+          <td>Global Preamp. Centered at 200 (0dB). 1 unit = 0.1dB. <br>Formula: <span class="formula">Value = (dB * 10) + 200</span>.</td>
+        </tr>
+        <tr>
+          <td><code>FreqX</code></td>
+          <td>Hz with -5 offset. Formula: <span class="formula">Value = Hz - 5</span>. Default: <span class="formula">195</span> (200Hz).</td>
+        </tr>
+        <tr>
+          <td><code>GainX</code></td>
+          <td>Gain centered at 3000. 1dB = 100 units. <br>Formula: <span class="formula">Value = 3000 + (dB * 100)</span>.</td>
+        </tr>
+        <tr>
+          <td><code>QX</code></td>
+          <td>Q factor scaled by 1000 with -20 offset. <br>Formula: <span class="formula">Value = (Q * 1000) - 20</span>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const TB_GAIN_OFFSET = 3000;
+const TB_GAIN_STEP = 100;
+const TB_FREQ_OFFSET = 5;
+const TB_Q_OFFSET = 20;
+const TB_Q_STEP = 1000;
+const TB_OUTGAIN_OFFSET = 200;
+const TB_OUTGAIN_STEP = 10;
+
+const DEFAULT_FREQ_RAW = 195; 
+const DEFAULT_GAIN_RAW = 3000; 
+const DEFAULT_Q_RAW = 1480;   
+
+function showSectionError(sectionId, msg) {
+  const el = document.getElementById(sectionId === 'A' ? "errorA" : "errorB");
+  if (msg) {
+    el.textContent = msg;
+    el.style.display = "block";
+  } else {
+    el.style.display = "none";
+  }
+}
+
+function prettyPrintTB(xmlString) {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    const program = xmlDoc.getElementsByTagName("Program")[0];
+    const tpb = xmlDoc.getElementsByTagName("tpb")[0];
+    if (!program || !tpb) return xmlString;
+
+    let out = '<?xml version="1.0" encoding="UTF-8"?>\n\n';
+    out += `<tpb manufacturerCode="${tpb.getAttribute('manufacturerCode')}" pluginCode="${tpb.getAttribute('pluginCode')}">\n`;
+    out += `  <Program\n`;
+
+    const attrs = Array.from(program.attributes);
+    const sortedAttrs = attrs.sort((a, b) => {
+        const priority = ["Name", "Category", "OutGain", "ScnIdx"];
+        const aIdx = priority.indexOf(a.name);
+        const bIdx = priority.indexOf(b.name);
+        if (aIdx !== -1 || bIdx !== -1) return (bIdx === -1 ? -1 : aIdx - bIdx);
+        const aNum = parseInt(a.name.match(/\d+$/)) || 0;
+        const bNum = parseInt(b.name.match(/\d+$/)) || 0;
+        if (aNum !== bNum) return aNum - bNum;
+        return a.name.localeCompare(b.name);
+    });
+
+    sortedAttrs.forEach((attr, i) => {
+        const isLast = i === sortedAttrs.length - 1;
+        out += `    ${attr.name}="${attr.value}"${isLast ? '/>' : '\n'}`;
+    });
+
+    out += `\n</tpb>`;
+    return out;
+}
+
+// DIRECTION A: APO -> TB
+document.getElementById("fileInputA").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { document.getElementById("inputTextA").value = ev.target.result; convertA(); };
+  reader.readAsText(file);
+});
+document.getElementById("inputTextA").addEventListener("input", convertA);
+document.getElementById("presetNameA").addEventListener("input", convertA);
+
+function convertA() {
+  showSectionError('A', "");
+  try {
+    const input = document.getElementById("inputTextA").value;
+    const name = document.getElementById("presetNameA").value || "Preset";
+    if (!input.trim()) { document.getElementById("outputTextA").value = ""; return; }
+    
+    const lines = input.split(/\r?\n/);
+    const filters = [];
+    let preampValue = 0;
+
+    lines.forEach((line, idx) => {
+      const cleanLine = line.trim();
+      if (!cleanLine || cleanLine.startsWith("#")) return;
+      
+      // Parse Preamp
+      if (cleanLine.toLowerCase().startsWith("preamp:")) {
+        const pMatch = cleanLine.match(/Preamp:\s*([-\d.]+)/i);
+        if (pMatch) preampValue = parseFloat(pMatch[1]);
+        return;
+      }
+
+      // Parse Filters
+      const m = cleanLine.match(/Filter\s*(?:\d+)?:\s*(ON|OFF)\s+(PK|LSC|HSC)\s+Fc\s+([\d.]+)\s+Hz\s+Gain\s+([-\d.]+)\s+dB\s+Q\s+([\d.]+)/i);
+      if (m && m[1].toUpperCase() === "ON") {
+        filters.push({ kind: m[2].toUpperCase(), freq: parseFloat(m[3]), gain: parseFloat(m[4]), q: parseFloat(m[5]) });
+      } else if (cleanLine.toLowerCase().includes("filter") && !m) {
+        throw new Error(`Line ${idx + 1}: Malformed APO syntax.`);
+      }
+    });
+
+    const tbOutGain = Math.round((preampValue * TB_OUTGAIN_STEP) + TB_OUTGAIN_OFFSET);
+    const hues = [52, 36, 0, 180, 260, 300];
+    let attrsString = ` Name="${name}" Category="Presets" OutGain="${tbOutGain}" ScnIdx="${filters.length}"`;
+    
+    filters.forEach((f, i) => {
+      const idx = i + 1;
+      const tbFreq = Math.round(f.freq - TB_FREQ_OFFSET);
+      const tbGain = Math.round(TB_GAIN_OFFSET + (f.gain * TB_GAIN_STEP));
+      const tbQ = Math.round((f.q * TB_Q_STEP) - TB_Q_OFFSET);
+      const tbHue = hues[i % hues.length];
+      const type = f.kind === "LSC" ? `Type${idx}="1" Order${idx}="1"` : f.kind === "HSC" ? `Type${idx}="2" Order${idx}="1"` : "";
+      attrsString += ` Visibl${idx}="1" ${type} Enable${idx}="1" Hue${idx}="${tbHue}" Freq${idx}="${tbFreq}" Gain${idx}="${tbGain}" Q${idx}="${tbQ}"`;
+    });
+
+    const rawXML = `<?xml version="1.0" encoding="UTF-8"?><tpb manufacturerCode="1414483522" pluginCode="1412515152"><Program${attrsString} /></tpb>`;
+    document.getElementById("outputTextA").value = prettyPrintTB(rawXML);
+  } catch (e) { showSectionError('A', e.message); }
+}
+
+function downloadXML() {
+  const xml = document.getElementById("outputTextA").value;
+  if (!xml) return;
+  const blob = new Blob([xml], { type: "application/xml" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (document.getElementById("presetNameA").value || "Preset") + ".xml";
+  a.click();
+}
+
+// DIRECTION B: TB -> APO
+document.getElementById("fileInputB").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { document.getElementById("inputTextB").value = ev.target.result; convertB(); };
+  reader.readAsText(file);
+});
+document.getElementById("inputTextB").addEventListener("input", convertB);
+
+function convertB() {
+  showSectionError('B', "");
+  try {
+    const input = document.getElementById("inputTextB").value;
+    if (!input.trim()) { document.getElementById("outputTextB").value = ""; return; }
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(input.includes("<Program") ? input : `<root>${input}</root>`, "text/xml");
+    if (xmlDoc.getElementsByTagName("parsererror").length) throw new Error("Invalid XML structure.");
+    const program = xmlDoc.getElementsByTagName("Program")[0];
+    if (!program) throw new Error("Could not find <Program> tag.");
+
+    let apoLines = [];
+    
+    // Convert OutGain to Preamp
+    const outGainAttr = program.getAttribute("OutGain");
+    if (outGainAttr !== null) {
+        const preampVal = ((parseFloat(outGainAttr) - TB_OUTGAIN_OFFSET) / TB_OUTGAIN_STEP).toFixed(1);
+        apoLines.push(`Preamp: ${preampVal} dB`);
+    }
+
+    for (let i = 1; i <= 32; i++) {
+      if (program.getAttribute(`Enable${i}`) !== "1") continue;
+      const fAttr = program.getAttribute(`Freq${i}`);
+      const gAttr = program.getAttribute(`Gain${i}`);
+      const qAttr = program.getAttribute(`Q${i}`);
+      const rawFreq = fAttr !== null ? parseFloat(fAttr) : DEFAULT_FREQ_RAW;
+      const rawGain = gAttr !== null ? parseFloat(gAttr) : DEFAULT_GAIN_RAW;
+      const rawQ    = qAttr !== null ? parseFloat(qAttr) : DEFAULT_Q_RAW;
+      const rawType = program.getAttribute(`Type${i}`) || "0";
+      const realFreq = Math.round(rawFreq + TB_FREQ_OFFSET);
+      const realGain = ((rawGain - TB_GAIN_OFFSET) / TB_GAIN_STEP).toFixed(2).replace(/\.?0+$/, "");
+      const realQ = ((rawQ + TB_Q_OFFSET) / TB_Q_STEP).toFixed(3);
+      let typeStr = "PK";
+      if (rawType === "1") typeStr = "LSC";
+      if (rawType === "2") typeStr = "HSC";
+      apoLines.push(`Filter ${i}: ON ${typeStr} Fc ${realFreq} Hz Gain ${realGain} dB Q ${realQ}`);
+    }
+    document.getElementById("outputTextB").value = apoLines.join("\r\n");
+  } catch (e) { document.getElementById("outputTextB").value = ""; showSectionError('B', e.message); }
+}
+
+function downloadAPOText() {
+  const text = document.getElementById("outputTextB").value;
+  if (!text) return;
+  const blob = new Blob([text], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "export.txt";
+  a.click();
+}
+
+async function copyToClipboard() {
+  const text = document.getElementById("outputTextB").value;
+  if (!text) return;
+  try { await navigator.clipboard.writeText(text); } 
+  catch (err) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textArea);
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,362 @@
+import numpy as np
+import sounddevice as sd
+import csv
+import os
+from textual.app import App, ComposeResult
+from textual.widgets import (
+    Header, Footer, Button, Label, Static, 
+    ProgressBar, Input, ListItem, ListView, RichLog
+)
+from textual.containers import Vertical, Horizontal
+from textual.binding import Binding
+from textual.screen import Screen
+from textual.message import Message
+
+# --- SCIENTIFIC CONSTANTS ---
+LFO_RATE = 4.0        # Hz: Prevents neural adaptation
+LFO_DEPTH = 0.05      # 5%: Prevents standing waves
+SAMPLE_RATE = 44100
+BASE_AMPLITUDE = 0.3  
+
+ISO_FREQS = [
+    1000.0, 40.0, 4000.0, 125.0, 800.0, 25.0, 500.0, 12500.0, 63.0, 2500.0, 20.0, 
+    1600.0, 31.5, 10000.0, 80.0, 2000.0, 200.0, 16000.0, 50.0, 6300.0, 315.0, 
+    20000.0, 100.0, 3150.0, 160.0, 5000.0, 250.0, 800.0, 630.0, 1250.0, 400.0
+]
+
+class FileSelected(Message):
+    def __init__(self, filename: str, mode: str, force: bool = False) -> None:
+        self.filename = filename
+        self.mode = mode
+        self.force = force
+        super().__init__()
+
+class OverwriteScreen(Screen):
+    def __init__(self, filename: str):
+        super().__init__()
+        self.filename = filename
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="confirm_panel"):
+            yield Label(f"FILE EXISTS: {self.filename}", id="confirm_title")
+            yield Label("Do you want to overwrite this profile?", id="confirm_msg")
+            with Horizontal(id="confirm_buttons"):
+                yield Button("Cancel", id="cancel_ovr", variant="error")
+                yield Button("Overwrite", id="confirm_ovr", variant="primary")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "confirm_ovr":
+            self.post_message(FileSelected(self.filename, "save", force=True))
+        self.app.pop_screen()
+
+class FileBrowserScreen(Screen):
+    BINDINGS = [
+        Binding("escape", "dismiss_screen", "Exit"), 
+        Binding("enter", "submit", "Confirm")
+    ]
+
+    def __init__(self, mode="load"):
+        super().__init__()
+        self.mode = mode
+
+    def compose(self) -> ComposeResult:
+        files = sorted([f for f in os.listdir('.') if f.endswith('.csv')])
+        with Vertical(id="browser_outer"):
+            with Vertical(id="browser_panel"):
+                yield Label(f"HEARCAL: {self.mode.upper()} PROFILE", id="browser_title")
+                if self.mode == "save":
+                    yield Input(placeholder="filename.csv", id="new_file_input")
+                
+                yield ListView(*[ListItem(Label(f)) for f in files], id="file_list")
+                self.file_map = files
+                
+                with Horizontal(id="browser_buttons"):
+                    yield Button("Cancel (Esc)", id="cancel", variant="error")
+                    yield Button("Confirm (Enter)", id="confirm", variant="primary")
+
+    def action_dismiss_screen(self) -> None:
+        self.app.pop_screen()
+
+    def action_submit(self) -> None:
+        fn = self.get_selection()
+        if not fn:
+            return
+        if not fn.endswith(".csv"):
+            fn += ".csv"
+        
+        if self.mode == "save" and os.path.exists(fn):
+            self.app.push_screen(OverwriteScreen(fn))
+        else:
+            self.post_message(FileSelected(fn, self.mode))
+            self.app.pop_screen()
+
+    def get_selection(self) -> str:
+        new_val = self.query_one("#new_file_input").value.strip() if self.mode == "save" else ""
+        list_view = self.query_one("#file_list")
+        if list_view.index is not None and list_view.index < len(self.file_map):
+            return new_val or self.file_map[list_view.index]
+        return new_val
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "confirm":
+            self.action_submit()
+        else:
+            self.action_dismiss_screen()
+
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        self.action_submit()
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self.action_submit()
+
+class VerificationScreen(Screen):
+    BINDINGS = [
+        Binding("escape", "dismiss_screen", "Exit"),
+        Binding("left", "prev_freq", "Prev Band"),
+        Binding("right", "next_freq", "Next Band"),
+        Binding("up", "gain_up", "+0.5dB"),
+        Binding("down", "gain_down", "-0.5dB"),
+        Binding("space", "play_sequence", "Play Once")
+    ]
+
+    def __init__(self, results):
+        super().__init__()
+        self.results = results
+        self.v_idx = 0
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="verify_container"):
+            yield Label("VERIFICATION & REFINEMENT", variant="title")
+            yield Static(
+                "PROCESS: Sequential comparison separated by silence.\n\n"
+                "1. [L/R]: Change Band. (Triggers auto-play)\n"
+                "2. [UP/DOWN]: Adjust level +/-0.5dB. (Triggers auto-play)\n"
+                "3. [SPACE]: Re-play sequence: Anchor -> Silence -> Test.\n\n"
+                "GOAL: Ensure subjective 'weight' matches the 1kHz anchor.",
+                classes="instr", 
+                markup=False
+            )
+            yield Label("", id="v_freq_label")
+            yield Label("", id="v_db_label", classes="mode-indicator")
+            with Horizontal():
+                yield Button("Return to Main (Esc)", id="exit_verify")
+
+    def on_mount(self):
+        self.update_v_ui()
+
+    def update_v_ui(self):
+        freq = ISO_FREQS[self.v_idx]
+        db = self.results.get(freq, 0.0)
+        self.query_one("#v_freq_label").update(f"Refining: [b]{int(freq)} Hz[/b]")
+        self.query_one("#v_db_label").update(f"Current Offset: {db:+.1f} dB")
+
+    def action_dismiss_screen(self) -> None:
+        self.app.pop_screen()
+
+    def action_prev_freq(self):
+        self.v_idx = max(0, self.v_idx - 1)
+        self.update_v_ui()
+        self.action_play_sequence()
+
+    def action_next_freq(self):
+        self.v_idx = min(len(ISO_FREQS) - 1, self.v_idx + 1)
+        self.update_v_ui()
+        self.action_play_sequence()
+
+    def action_gain_up(self):
+        self.results[ISO_FREQS[self.v_idx]] += 0.5
+        self.update_v_ui()
+        self.action_play_sequence()
+
+    def action_gain_down(self):
+        self.results[ISO_FREQS[self.v_idx]] -= 0.5
+        self.update_v_ui()
+        self.action_play_sequence()
+
+    def action_play_sequence(self):
+        freq = ISO_FREQS[self.v_idx]
+        db = self.results.get(freq, 0.0)
+        ref = self.app.generate_seamless_warble(1000.0, 0.0, 1.2)
+        test = self.app.generate_seamless_warble(freq, db, 1.2)
+        silence = np.zeros(int(SAMPLE_RATE * 0.3), dtype=np.float32)
+        sd.play(np.concatenate([ref, silence, test]), SAMPLE_RATE)
+
+    def on_button_pressed(self, event: Button.Pressed):
+        self.action_dismiss_screen()
+
+class HearCal(App):
+    BINDINGS = [
+        Binding("s", "request_save", "Save"), 
+        Binding("l", "request_load", "Load"),
+        Binding("t", "toggle_tone", "Toggle"), 
+        Binding("space", "play_stop", "Play/Stop"),
+        Binding("v", "enter_verify", "Verify"), 
+        Binding("left", "prev_freq", "Prev"),
+        Binding("right", "next_freq", "Next"), 
+        Binding("up", "gain_up", "+0.5dB"),
+        Binding("down", "gain_down", "-0.5dB"), 
+        Binding("q", "quit", "Exit"),
+    ]
+
+    CSS = """
+    Screen { align: center middle; }
+    #main_container, #verify_container { 
+        width: 85; height: auto; border: thick $primary; 
+        padding: 1; background: $surface; 
+    }
+    Horizontal { height: auto; align: center middle; margin: 1 0; }
+    #db_display { 
+        text-align: center; color: $secondary; 
+        text-style: bold; width: 100%; margin: 1 0; 
+    }
+    .mode-indicator { 
+        text-align: center; background: $accent; 
+        color: $text; padding: 0 1; margin-bottom: 1; 
+    }
+    .instr { 
+        text-style: italic; color: $text-muted; 
+        margin-bottom: 1; height: auto; 
+    }
+    #debug_terminal { 
+        height: 8; border: solid $error; 
+        background: black; color: #00FF00; margin-top: 1; 
+    }
+    #browser_outer { align: center middle; }
+    #browser_panel { 
+        width: 75; height: 80%; border: double $accent; 
+        padding: 2; background: $panel; 
+    }
+    #file_list { height: 1fr; margin: 1 0; border: solid $primary; }
+    #confirm_panel { 
+        width: 50; height: auto; border: thick $error; 
+        padding: 1; background: $surface; align: center middle; 
+    }
+    #confirm_title { text-style: bold; color: $error; margin-bottom: 1; }
+    Button { margin: 0 1; }
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.active_mode = "REF"
+        self.current_idx = 0 
+        self.results = {float(f): 0.0 for f in ISO_FREQS}
+        self.is_playing = False
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        with Vertical(id="main_container"):
+            yield Label("HEARCAL: PERCEPTUAL CALIBRATION", variant="title")
+            yield Static(
+                "1. SPL: Play 1000Hz [Ref] and set hardware volume to ~85dB SPL.\n"
+                "2. MATCH: Toggle [T] for equal loudness.\n"
+                "3. VERIFY: Press [V] for sequential refinement pass.", 
+                classes="instr", 
+                markup=False
+            )
+            yield Label("MODE: REFERENCE (1000Hz)", id="mode_label", classes="mode-indicator")
+            yield Label(id="freq_label")
+            yield Static(id="db_display")
+            with Horizontal():
+                yield Button("AUDIO (Space)", variant="success", id="play_btn")
+                yield Button("TOGGLE (T)", variant="primary", id="toggle_btn")
+            yield ProgressBar(total=len(ISO_FREQS), id="pbar")
+            yield RichLog(id="debug_terminal", highlight=True, markup=True)
+        yield Footer()
+
+    def log_debug(self, msg: str):
+        self.query_one("#debug_terminal").write(f"[debug] {msg}")
+
+    def update_ui(self):
+        freq = ISO_FREQS[self.current_idx]
+        db = self.results.get(freq, 0.0)
+        mode_txt = "MODE: REFERENCE" if self.active_mode == "REF" else f"MODE: TESTING ({int(freq)}Hz)"
+        
+        self.query_one("#mode_label").update(mode_txt)
+        self.query_one("#freq_label").update(f"Band {self.current_idx+1}/31: [b]{int(freq)} Hz[/b]")
+        self.query_one("#db_display").update(f"{db:+.1f} dB")
+        self.query_one("#pbar").update(progress=self.current_idx + 1)
+        
+        if self.is_playing:
+            self.run_audio()
+
+    def generate_seamless_warble(self, freq, gain_db, target_duration=2.0):
+        lfo_samples = SAMPLE_RATE / LFO_RATE
+        total_samples = int(max(1, round(target_duration * LFO_RATE)) * lfo_samples)
+        t = np.linspace(0, total_samples / SAMPLE_RATE, total_samples, endpoint=False)
+        phase = 2 * np.pi * (freq * t - (freq * LFO_DEPTH / (2 * np.pi * LFO_RATE)) * np.cos(2 * np.pi * LFO_RATE * t))
+        return (np.sin(phase) * (10**(gain_db / 20.0)) * BASE_AMPLITUDE).astype(np.float32)
+
+    def action_play_stop(self):
+        self.is_playing = not self.is_playing
+        if not self.is_playing:
+            sd.stop()
+        else:
+            self.run_audio()
+        self.query_one("#play_btn").label = "STOP" if self.is_playing else "START"
+
+    def run_audio(self):
+        if not self.is_playing:
+            return
+        freq = 1000.0 if self.active_mode == "REF" else ISO_FREQS[self.current_idx]
+        gain = 0.0 if self.active_mode == "REF" else self.results.get(freq, 0.0)
+        sd.play(self.generate_seamless_warble(freq, gain), SAMPLE_RATE, loop=True)
+
+    def action_toggle_tone(self):
+        self.active_mode = "TEST" if self.active_mode == "REF" else "REF"
+        self.update_ui()
+
+    def action_enter_verify(self):
+        if self.is_playing:
+            self.action_play_stop()
+        self.push_screen(VerificationScreen(self.results))
+
+    def action_request_load(self):
+        self.push_screen(FileBrowserScreen(mode="load"))
+
+    def action_request_save(self):
+        self.push_screen(FileBrowserScreen(mode="save"))
+
+    def on_file_selected(self, message: FileSelected) -> None:
+        fn = message.filename
+        if message.mode == "load":
+            try:
+                with open(fn, 'r') as f:
+                    for row in csv.DictReader(f):
+                        f_in = float(row['frequency'])
+                        db_in = float(row['raw'])
+                        std_f = min(ISO_FREQS, key=lambda x: abs(x - f_in))
+                        self.results[std_f] = db_in
+                self.log_debug(f"LOADED: {fn}")
+                self.update_ui()
+            except Exception as e:
+                self.log_debug(f"LOAD ERROR: {e}")
+        else:
+            with open(fn, 'w', newline='') as f:
+                w = csv.writer(f)
+                w.writerow(["frequency", "raw"])
+                for freq in sorted(ISO_FREQS):
+                    w.writerow([f"{freq:.2f}", f"{self.results[freq]:.2f}"])
+            self.notify(f"Saved: {fn}")
+
+    def action_gain_up(self):
+        self.results[ISO_FREQS[self.current_idx]] += 0.5
+        self.update_ui()
+
+    def action_gain_down(self):
+        self.results[ISO_FREQS[self.current_idx]] -= 0.5
+        self.update_ui()
+
+    def action_next_freq(self):
+        self.current_idx = min(len(ISO_FREQS) - 1, self.current_idx + 1)
+        self.update_ui()
+
+    def action_prev_freq(self):
+        self.current_idx = max(0, self.current_idx - 1)
+        self.update_ui()
+
+    def on_mount(self):
+        self.update_ui()
+
+if __name__ == "__main__":
+    HearCal().run()
+
