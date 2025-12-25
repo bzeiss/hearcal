@@ -94,7 +94,7 @@ C-weighting may be used if you prefer aligning physical energy rather than perce
 
 **Calibration Procedure:**
 1.  **Set Meter:** Select **A-Weighting** and **Slow** response (this averages the "peaks" and "valleys" of the noise over 1 second for a steady reading).
-2.  **Signal:** Play **Pink Noise** through one side of your headphones.
+2.  **Signal:** Play **Pink Noise** (some mixers prefer brown noise or variations of brown noise) through one side of your headphones.
 3.  **Target:** Position your SPL meter (or phone app) against the headphone driver and adjust your hardware volume until you hit your chosen level (**79–85 dB**).
 4.  **Hardware Marker:** Ideally, connect your amp to a fixed line-out (so levels aren't tied to an interface knob) and put a physical marker on your headphone amp volume knob. **This is now your reference level for the entire calibration.**
 
