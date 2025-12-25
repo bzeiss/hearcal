@@ -11,10 +11,12 @@ Standard headphone targets are based on "standard" listeners with healthy hearin
 * **Phase 1 (Calibration)**: Uses **Instantaneous A/B Switching** to find equal-loudness thresholds across 31 ISO frequency bands, compared against a 1000Hz reference anchor.
 * **Phase 2 (Verification)**: Employs a **Sequential Pulse methodology** (Anchor → Silence → Test). This helps reduce short-term loudness adaptation and prevents the brain from "adapting" to the sound, which can otherwise skew results. This phase includes toggle modes to shuffle frequencies or test in ascending order to ensure a truly "flat" subjective response.
 
-The tool is designed to give an indication of where perceptual deviations might exist when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. It's purely a DIY approach and does not replace an audiogram from an audiologist in a controlled environment. It might just as well lead to curves that overcompensate and make things worse. Please be aware of this fact.
+The tool is designed to give an indication of where perceptual deviations might exist when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. It's purely a DIY approach and does not replace an audiogram from an audiologist in a controlled environment. The pure sine test tones do not represent actual music and the frequency spectrum of music. It might just as well lead to curves that overcompensate and make things worse. Please be aware of this fact.
 
    > **⚠️ Recommended Workflow for Mixing**  
    > Start with your headphone's Harman EQ *without* personal hearing correction. Only use HearCal if you experience consistent translation problems. Then A/B test to verify the correction actually helps your mixes.
+
+Be aware that real hearing loss cannot be compensated with this tool.
 
 HearCal is a cross-platform command-line application with a Terminal User Interface (TUI). It is designed to be lightweight, easy to adapt, and low-maintenance. While it requires basic technical knowledge to run, the calibration process itself is intuitive.
 
@@ -83,7 +85,7 @@ While 85 dB is the technical sweet spot, it can be fatiguing over a long 8-hour 
 The most important point is: choose one SPL loudness and calibrate to the loudness you mix at. If you mix at different levels, use different calibration profiles.
 
 #### Headphone Calibration with an SPL Meter
-To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** and a **Slow** response time.
+To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** and a **Slow** response time. Be aware that the approach shown below will not yield exact results and may easily be off by a few dBs.
 
 While C-weighting is often used for room calibration, **A-weighting** is recommended here for a specific reason:
 * **Sub-bass filtering:** Sub-bass produces a massive amount of physical energy that registers high on a meter, but for many people, it is much less "present" in their actual hearing than the mids and highs. 
@@ -238,8 +240,12 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
 
 7. Verifying Translation & Making Adjustments
 
-This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point. 
+This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point. It may also throw you off totally. It might be enough to look at the adjustment graph and just take the results as hint what to check out by manually EQing the normal Harman Over-Ear 2018 correction curve for your headphone. Always check your mix translations on multiple monitoring systems and adjust your EQ accordingly for what you have found out. Every person compensates differently for what he/she hears.
 
 Consider running calibration on two different days and comparing results. Large differences between sessions suggest measurement noise rather than true hearing characteristics.
 
 For tuning further, maybe try also [Owliophile](https://owliophile.com/) with and without corrective EQ.
+
+## 5. Ideas
+* Allow the option to use band-limited noise (e.g., 1/3-oct noise) for a test tone.
+
