@@ -11,7 +11,10 @@ Standard headphone targets are based on "standard" listeners with healthy hearin
 * **Phase 1 (Calibration)**: Uses **Instantaneous A/B Switching** to find equal-loudness thresholds across 31 ISO frequency bands, compared against a 1000Hz reference anchor.
 * **Phase 2 (Verification)**: Employs a **Sequential Pulse methodology** (Anchor → Silence → Test). This resets the ear's automatic gain control and prevents the brain from "adapting" to the sound, which can otherwise skew results. This phase includes toggle modes to shuffle frequencies or test in ascending order to ensure a truly "flat" subjective response.
 
-The tool is designed to give an indication where the problem might be, when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. If you're uncertain whether hearing correction helps your mixes, try this: Complete the calibration, but initially apply only your headphone's Harman EQ without the personal delta. Mix several tracks. Then enable the personal correction and compare how those same mixes translate. This A/B approach lets you empirically determine whether the hearing correction helps or hurts your specific workflow.
+The tool is designed to give an indication where the problem might be, when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. 
+
+   > **⚠️ Recommended Workflow for Mixing**  
+   > Start with your headphone's Harman EQ *without* personal hearing correction. Only use HearCal if you experience consistent translation problems. Then A/B test to verify the correction actually helps your mixes.
 
 HearCal is a cross-platform command-line application with a Terminal User Interface (TUI). It is designed to be lightweight, easy to adapt, and low-maintenance. While it requires basic technical knowledge to run, the calibration process itself is intuitive.
 
@@ -187,9 +190,13 @@ The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizar
 7. **Optimize the EQ**: 
    * Ideally, manually adjust the filters on the left to match the headphone measurement to your corrected target. 
    * If you use the **AutoEQ** button, ensure the results meet quality criteria: **broad Q factors**, **minimal gain changes**, and a **low number of bands**. Avoid over-correcting; use headphones that already have a relatively good frequency response.
+  
+   > ️⚠️ Note that large deviations in any band (.e.g, >6 dB) might indicate the need for professional audiometry rather than DIY correction.
+
    * When satisfied, hit **"Export"** on the left to save the **EqualizerAPO** `.txt` file.
 
    <img width="1912" height="887" alt="image" src="https://github.com/user-attachments/assets/0ba860b1-2071-48f8-958f-a97c1258bd6f" />
+
 
 8. **Final Considerations**: 
    * You now have a TXT file containing EqualizerAPO filters.
@@ -221,6 +228,6 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
    * Select your new preset. 
    * Listen to high-quality reference tracks and begin mixing. Your monitoring environment is now optimized for the unique combination of your headphones and your personal hearing.
 
-7. Personal adjustments to translation
+7. Verifying Translation & Making Adjustments
 
 This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point.
