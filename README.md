@@ -4,12 +4,14 @@ HearCal is a Python-based tool designed to bridge the gap between objective acou
 
 ## 1. Introduction
 
-The goal of HearCal is to generate a **personalized hearing profile** (a "delta curve"). This curve accounts for the unique characteristics of your ears and your specific headphones. When combined with industry-standard targets—such as the **Harman Over-Ear 2018** curve, it creates an equalization profile tailored specifically to how you perceive sound.
+The goal of HearCal is to generate a **personalized hearing profile** (a "delta curve"). This curve accounts for the unique characteristics of your ears and your specific headphones. When combined with industry-standard targets—such as the **Harman Over-Ear 2018** curve, it creates an equalization profile tailored specifically to how you perceive sound. 
 
 Standard headphone targets are based on "standard" listeners with healthy hearing. However, because sensitivity varies with age, noise exposure, and physiology, your perception often deviates from these averages. HearCal identifies these deviations through a two-phase process:
 
 * **Phase 1 (Calibration)**: Uses **Instantaneous A/B Switching** to find equal-loudness thresholds across 31 ISO frequency bands, compared against a 1000Hz reference anchor.
 * **Phase 2 (Verification)**: Employs a **Sequential Pulse methodology** (Anchor → Silence → Test). This resets the ear's automatic gain control and prevents the brain from "adapting" to the sound, which can otherwise skew results. This phase includes toggle modes to shuffle frequencies or test in ascending order to ensure a truly "flat" subjective response.
+
+The tool is designed to give an indication where the problem might be, when the default target curves consistently lead to bad mix translation. We suggest to start with the default target curves first before using this tool. If you're uncertain whether hearing correction helps your mixes, try this: Complete the calibration, but initially apply only your headphone's Harman EQ without the personal delta. Mix several tracks. Then enable the personal correction and compare how those same mixes translate. This A/B approach lets you empirically determine whether the hearing correction helps or hurts your specific workflow.
 
 HearCal is a cross-platform command-line application with a Terminal User Interface (TUI). It is designed to be lightweight, easy to adapt, and low-maintenance. While it requires basic technical knowledge to run, the calibration process itself is intuitive.
 
