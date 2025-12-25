@@ -177,7 +177,7 @@ The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizar
    Safety / sanity check: If your delta (or resulting EQ) suggests large or narrow corrections (e.g., >6 dB in any band or very high-Q “spikes”), treat it as unreliable—retest on another day, smooth/average results, and limit EQ to a few broad bands (prefer ≤3–6 dB total adjustment).
 
 3. **Rename & Categorize**: You now have a personalized target curve. Right-click it and rename it to something like `HOE2018_corrected_username_headphones`. 
-   > **Important:** This calibration is unique to the specific combination of **your ears** and **these specific headphones**. It will not be accurate for other users or other headphone models.
+   > **Important:** This calibration is unique to the specific combination of **your ears** and **these specific headphones**. It will not work for other users or other headphone models.
    
    <img width="1297" height="658" alt="image" src="https://github.com/user-attachments/assets/048a0688-9a8b-43b2-ae9f-374c81318a5d" />
 
