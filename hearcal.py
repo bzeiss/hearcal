@@ -2,10 +2,19 @@ import numpy as np
 import sounddevice as sd
 import csv
 import os
+import random
 from textual.app import App, ComposeResult
 from textual.widgets import (
-    Header, Footer, Button, Label, Static, 
-    ProgressBar, Input, ListItem, ListView, RichLog
+    Header, 
+    Footer, 
+    Button, 
+    Label, 
+    Static, 
+    ProgressBar, 
+    Input, 
+    ListItem, 
+    ListView, 
+    RichLog
 )
 from textual.containers import Vertical, Horizontal
 from textual.binding import Binding
@@ -13,7 +22,7 @@ from textual.screen import Screen
 from textual.message import Message
 
 # --- SCIENTIFIC CONSTANTS ---
-LFO_RATE = 4.0        # Hz: Prevents neural adaptation
+LFO_RATE = 4.0        # Hz: Psychoacoustic rate to bypass neural adaptation
 LFO_DEPTH = 0.05      # 5%: Prevents standing waves
 SAMPLE_RATE = 44100
 BASE_AMPLITUDE = 0.3  
@@ -32,6 +41,9 @@ class FileSelected(Message):
         super().__init__()
 
 class OverwriteScreen(Screen):
+    BINDINGS = [
+        Binding("escape", "dismiss_screen", "Cancel")
+    ]
     def __init__(self, filename: str):
         super().__init__()
         self.filename = filename
@@ -39,22 +51,24 @@ class OverwriteScreen(Screen):
     def compose(self) -> ComposeResult:
         with Vertical(id="confirm_panel"):
             yield Label(f"FILE EXISTS: {self.filename}", id="confirm_title")
-            yield Label("Do you want to overwrite this profile?", id="confirm_msg")
+            yield Label("Overwrite this profile?", id="confirm_msg")
             with Horizontal(id="confirm_buttons"):
-                yield Button("Cancel", id="cancel_ovr", variant="error")
+                yield Button("Cancel (Esc)", id="cancel_ovr", variant="error")
                 yield Button("Overwrite", id="confirm_ovr", variant="primary")
+
+    def action_dismiss_screen(self) -> None:
+        self.app.pop_screen()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "confirm_ovr":
             self.post_message(FileSelected(self.filename, "save", force=True))
-        self.app.pop_screen()
+        self.action_dismiss_screen()
 
 class FileBrowserScreen(Screen):
     BINDINGS = [
         Binding("escape", "dismiss_screen", "Exit"), 
         Binding("enter", "submit", "Confirm")
     ]
-
     def __init__(self, mode="load"):
         super().__init__()
         self.mode = mode
@@ -83,12 +97,12 @@ class FileBrowserScreen(Screen):
             return
         if not fn.endswith(".csv"):
             fn += ".csv"
-        
+            
         if self.mode == "save" and os.path.exists(fn):
             self.app.push_screen(OverwriteScreen(fn))
         else:
             self.post_message(FileSelected(fn, self.mode))
-            self.app.pop_screen()
+            self.action_dismiss_screen()
 
     def get_selection(self) -> str:
         new_val = self.query_one("#new_file_input").value.strip() if self.mode == "save" else ""
@@ -106,82 +120,115 @@ class FileBrowserScreen(Screen):
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         self.action_submit()
 
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        self.action_submit()
-
 class VerificationScreen(Screen):
     BINDINGS = [
         Binding("escape", "dismiss_screen", "Exit"),
-        Binding("left", "prev_freq", "Prev Band"),
-        Binding("right", "next_freq", "Next Band"),
+        Binding("left", "prev_freq", "Prev"),
+        Binding("right", "next_freq", "Next"),
         Binding("up", "gain_up", "+0.5dB"),
         Binding("down", "gain_down", "-0.5dB"),
-        Binding("space", "play_sequence", "Play Once")
+        Binding("space", "play_audio", "Play"),
+        Binding("p", "toggle_playback_mode", "Seq/Pulse"),
+        Binding("r", "shuffle_freqs", "Shuffle"),
+        Binding("a", "sort_ascending", "Ascending")
     ]
 
     def __init__(self, results):
         super().__init__()
         self.results = results
+        self.freq_list = list(ISO_FREQS)
         self.v_idx = 0
+        self.mode_sequence = True 
 
     def compose(self) -> ComposeResult:
         with Vertical(id="verify_container"):
             yield Label("VERIFICATION & REFINEMENT", variant="title")
             yield Static(
-                "PROCESS: Sequential comparison separated by silence.\n\n"
-                "1. [L/R]: Change Band. (Triggers auto-play)\n"
-                "2. [UP/DOWN]: Adjust level +/-0.5dB. (Triggers auto-play)\n"
-                "3. [SPACE]: Re-play sequence: Anchor -> Silence -> Test.\n\n"
-                "GOAL: Ensure subjective 'weight' matches the 1kHz anchor.",
+                "1. [L/R]: Navigates frequency list.\n"
+                "2. [UP/DOWN]: Adjusts level +/-0.5dB.\n"
+                "3. [P]: Toggle Playback (Anchor-Gap-Test vs. Pulse Only).\n"
+                "4. [R/A]: Shuffle or Sort list to re-evaluate perceptions.\n"
+                "5. [SPACE]: Re-play current selection.",
                 classes="instr", 
                 markup=False
             )
+            yield Label("", id="play_mode_label", classes="mode-indicator")
             yield Label("", id="v_freq_label")
             yield Label("", id="v_db_label", classes="mode-indicator")
+            yield ProgressBar(total=len(ISO_FREQS), id="v_pbar", show_percentage=True)
             with Horizontal():
-                yield Button("Return to Main (Esc)", id="exit_verify")
+                yield Button("Exit (Esc)", id="exit_verify")
 
     def on_mount(self):
         self.update_v_ui()
 
     def update_v_ui(self):
-        freq = ISO_FREQS[self.v_idx]
+        freq = self.freq_list[self.v_idx]
         db = self.results.get(freq, 0.0)
-        self.query_one("#v_freq_label").update(f"Refining: [b]{int(freq)} Hz[/b]")
-        self.query_one("#v_db_label").update(f"Current Offset: {db:+.1f} dB")
+        mode_txt = "MODE: ANCHOR-GAP-TEST" if self.mode_sequence else "MODE: PULSE ONLY"
+        
+        self.query_one("#play_mode_label").update(mode_txt)
+        self.query_one("#v_freq_label").update(
+            f"Band {self.v_idx + 1}/{len(self.freq_list)}: [b]{int(freq)} Hz[/b]"
+        )
+        self.query_one("#v_db_label").update(f"Offset: {db:+.1f} dB")
+        self.query_one("#v_pbar").update(progress=self.v_idx + 1)
 
-    def action_dismiss_screen(self) -> None:
-        self.app.pop_screen()
+    def action_toggle_playback_mode(self):
+        self.mode_sequence = not self.mode_sequence
+        self.update_v_ui()
+        self.action_play_audio()
+
+    def action_shuffle_freqs(self):
+        random.shuffle(self.freq_list)
+        self.v_idx = 0
+        self.notify("List Shuffled.")
+        self.update_v_ui()
+        self.action_play_audio()
+
+    def action_sort_ascending(self):
+        self.freq_list.sort()
+        self.v_idx = 0
+        self.notify("List Sorted: Ascending.")
+        self.update_v_ui()
+        self.action_play_audio()
 
     def action_prev_freq(self):
         self.v_idx = max(0, self.v_idx - 1)
         self.update_v_ui()
-        self.action_play_sequence()
+        self.action_play_audio()
 
     def action_next_freq(self):
-        self.v_idx = min(len(ISO_FREQS) - 1, self.v_idx + 1)
+        self.v_idx = min(len(self.freq_list) - 1, self.v_idx + 1)
         self.update_v_ui()
-        self.action_play_sequence()
+        self.action_play_audio()
 
     def action_gain_up(self):
-        self.results[ISO_FREQS[self.v_idx]] += 0.5
+        self.results[self.freq_list[self.v_idx]] += 0.5
         self.update_v_ui()
-        self.action_play_sequence()
+        self.action_play_audio()
 
     def action_gain_down(self):
-        self.results[ISO_FREQS[self.v_idx]] -= 0.5
+        self.results[self.freq_list[self.v_idx]] -= 0.5
         self.update_v_ui()
-        self.action_play_sequence()
+        self.action_play_audio()
 
-    def action_play_sequence(self):
-        freq = ISO_FREQS[self.v_idx]
+    def action_play_audio(self):
+        freq = self.freq_list[self.v_idx]
         db = self.results.get(freq, 0.0)
-        ref = self.app.generate_seamless_warble(1000.0, 0.0, 1.2)
-        test = self.app.generate_seamless_warble(freq, db, 1.2)
-        silence = np.zeros(int(SAMPLE_RATE * 0.3), dtype=np.float32)
-        sd.play(np.concatenate([ref, silence, test]), SAMPLE_RATE)
+        test_tone = self.app.generate_seamless_warble(freq, db, 1.2)
+        
+        if self.mode_sequence:
+            ref = self.app.generate_seamless_warble(1000.0, 0.0, 1.2)
+            silence = np.zeros(int(SAMPLE_RATE * 0.3), dtype=np.float32)
+            sd.play(np.concatenate([ref, silence, test_tone]), SAMPLE_RATE)
+        else: 
+            sd.play(test_tone, SAMPLE_RATE)
 
-    def on_button_pressed(self, event: Button.Pressed):
+    def action_dismiss_screen(self):
+        self.app.pop_screen()
+
+    def on_button_pressed(self, event):
         self.action_dismiss_screen()
 
 class HearCal(App):
@@ -247,9 +294,9 @@ class HearCal(App):
         with Vertical(id="main_container"):
             yield Label("HEARCAL: PERCEPTUAL CALIBRATION", variant="title")
             yield Static(
-                "1. SPL: Play 1000Hz [Ref] and set hardware volume to ~85dB SPL.\n"
+                "1. SPL: Set hardware volume at 1000Hz [Ref].\n"
                 "2. MATCH: Toggle [T] for equal loudness.\n"
-                "3. VERIFY: Press [V] for sequential refinement pass.", 
+                "3. VERIFY: Press [V] for randomized or sequential passes.", 
                 classes="instr", 
                 markup=False
             )
@@ -259,12 +306,9 @@ class HearCal(App):
             with Horizontal():
                 yield Button("AUDIO (Space)", variant="success", id="play_btn")
                 yield Button("TOGGLE (T)", variant="primary", id="toggle_btn")
-            yield ProgressBar(total=len(ISO_FREQS), id="pbar")
+            yield ProgressBar(total=len(ISO_FREQS), id="pbar", show_percentage=True)
             yield RichLog(id="debug_terminal", highlight=True, markup=True)
         yield Footer()
-
-    def log_debug(self, msg: str):
-        self.query_one("#debug_terminal").write(f"[debug] {msg}")
 
     def update_ui(self):
         freq = ISO_FREQS[self.current_idx]
@@ -272,7 +316,9 @@ class HearCal(App):
         mode_txt = "MODE: REFERENCE" if self.active_mode == "REF" else f"MODE: TESTING ({int(freq)}Hz)"
         
         self.query_one("#mode_label").update(mode_txt)
-        self.query_one("#freq_label").update(f"Band {self.current_idx+1}/31: [b]{int(freq)} Hz[/b]")
+        self.query_one("#freq_label").update(
+            f"Band {self.current_idx + 1}/{len(ISO_FREQS)}: [b]{int(freq)} Hz[/b]"
+        )
         self.query_one("#db_display").update(f"{db:+.1f} dB")
         self.query_one("#pbar").update(progress=self.current_idx + 1)
         
@@ -310,10 +356,10 @@ class HearCal(App):
             self.action_play_stop()
         self.push_screen(VerificationScreen(self.results))
 
-    def action_request_load(self):
+    def action_request_load(self): 
         self.push_screen(FileBrowserScreen(mode="load"))
-
-    def action_request_save(self):
+    
+    def action_request_save(self): 
         self.push_screen(FileBrowserScreen(mode="save"))
 
     def on_file_selected(self, message: FileSelected) -> None:
@@ -326,37 +372,35 @@ class HearCal(App):
                         db_in = float(row['raw'])
                         std_f = min(ISO_FREQS, key=lambda x: abs(x - f_in))
                         self.results[std_f] = db_in
-                self.log_debug(f"LOADED: {fn}")
                 self.update_ui()
-            except Exception as e:
-                self.log_debug(f"LOAD ERROR: {e}")
+            except: 
+                pass
         else:
             with open(fn, 'w', newline='') as f:
                 w = csv.writer(f)
                 w.writerow(["frequency", "raw"])
-                for freq in sorted(ISO_FREQS):
+                for freq in sorted(ISO_FREQS): 
                     w.writerow([f"{freq:.2f}", f"{self.results[freq]:.2f}"])
             self.notify(f"Saved: {fn}")
 
-    def action_gain_up(self):
+    def action_gain_up(self): 
         self.results[ISO_FREQS[self.current_idx]] += 0.5
         self.update_ui()
 
-    def action_gain_down(self):
+    def action_gain_down(self): 
         self.results[ISO_FREQS[self.current_idx]] -= 0.5
         self.update_ui()
 
-    def action_next_freq(self):
+    def action_next_freq(self): 
         self.current_idx = min(len(ISO_FREQS) - 1, self.current_idx + 1)
         self.update_ui()
 
-    def action_prev_freq(self):
+    def action_prev_freq(self): 
         self.current_idx = max(0, self.current_idx - 1)
         self.update_ui()
 
-    def on_mount(self):
+    def on_mount(self): 
         self.update_ui()
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     HearCal().run()
-
