@@ -1,6 +1,6 @@
 # HearCal: Perceptual Headphone Calibration for Mixing
 
-HearCal is a Python-based tool designed to bridge the gap between objective acoustic targets and your individual hearing. It allows you to create a personalized calibration profile for mixing music on headphones.
+HearCal is a Python-based tool designed to identify possible gaps between objective acoustic targets and your individual hearing. It allows you to create a personalized calibration profile for mixing music on headphones that may (or may not) help to personalize the mixing experience to your hearing (caveats below).
 
 ## 1. Introduction
 
