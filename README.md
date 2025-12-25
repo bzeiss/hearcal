@@ -27,7 +27,7 @@ HearCal is a cross-platform command-line application with a Terminal User Interf
 
 ### Project Status & Disclaimers
 
-* Experimental Tool: This project is a functional implementation of psychoacoustic principles, but I am not an acoustics professional or physicist. It is a "community-driven" attempt to improve monitoring accuracy.
+* Experimental Tool: This project is a functional implementation of psychoacoustic principles, but I am not an acoustics professional or physicist. It is a "community-driven" attempt to add another tool in the toolbox that may help to improve headphone monitoring accuracy.
 * Contributions: If you have expertise in psychoacoustics or Python and see room for improvement, merge requests are welcome! The goal is to keep the tool effective yet simple and maintainable.
 * AI Integration: Parts of this documentation and code were developed or refined with the assistance of AI to ensure clarity and provide a starting point for development.
 
