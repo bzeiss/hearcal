@@ -241,3 +241,5 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
 This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point. 
 
 Consider running calibration on two different days and comparing results. Large differences between sessions suggest measurement noise rather than true hearing characteristics.
+
+For tuning further, maybe try also [Owliophile](https://owliophile.com/) with and without corrective EQ.
