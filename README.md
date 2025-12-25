@@ -16,7 +16,7 @@ Standard headphone targets are based on "standard" listeners with healthy hearin
 The tool is designed to give an indication of where perceptual deviations might exist when the default target curves consistently lead to bad mix translation. I suggest to start with the default target curves first before using this tool. It's purely a DIY approach and does not replace an audiogram from an audiologist in a controlled environment. The pure sine test tones do not represent actual music and the frequency spectrum of music. It might just as well lead to curves that overcompensate and make things worse. Please be aware of this fact.
 
    > **⚠️ Recommended Workflow for Mixing**  
-   > Start with your headphone's Harman EQ *without* personal hearing correction. Only use HearCal if you experience consistent translation problems. Then A/B test to verify the correction actually helps your mixes.
+   > Start with your headphone's Harman EQ *without* personal hearing correction. Only try to use HearCal if you experience consistent translation problems. Then A/B test to verify the correction actually helps your mixes.
 
 Be aware that real hearing loss cannot be compensated with this tool.
 
