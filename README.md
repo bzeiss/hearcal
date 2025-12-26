@@ -44,7 +44,7 @@ To implement the HearCal workflow, you will need:
 * **SPL Meter:** Capable of **A-weighting** and **C-weighting** (a smartphone app can work, though a dedicated meter is more accurate).
 * **Headphone Amplifier:** A clean, high-quality amp is recommended to ensure your headphones have sufficient headroom.
 * **Python 3.10+**: The core environment for the script.
-* **PIP Packages**: `textual`, `numpy`, and `sounddevice`.
+* **PIP Packages**: `textual`, `numpy`, 'pandaa' and `sounddevice`.
 * **REW (Room EQ Wizard)**: Used for arithmetic.
 * **Target Curve:** The Harman Over-Ear 2018 (or your preferred AutoEQ target) in .csv or .txt format.
 * **Equalizer Software**: **[Toneboosters Equalizer Pro](https://www.toneboosters.com/tb_equalizer_pro.html)**: Recommended for cross-platform support. A converter from EqualizerAPO to TB format is included in this repo. *Alternatives*: Apulsoft **[ApQualizer2](https://www.apulsoft.ch/apqualizr2/)** supports import of EqualizerAPO equalizer profiles directly. Fabfilter **Pro-Q3/4** requires the multiplication of the Q factor by 1.41!
@@ -56,7 +56,7 @@ To implement the HearCal workflow, you will need:
 1. **Install Python**: Download from [python.org](https://www.python.org/) for Windows. On MacOS, I think it is already preinstalled. You may have to look this up. On Linux, install Python with the package manager of your distribution.
 2. **Install Dependencies**: Open your terminal or command prompt and run:
 ```bash
-pip install textual numpy sounddevice
+pip install textual numpy sounddevice pandas
 ```
 
 3. **Download HearCal**: Clone this repository or download the hearcal.py script to a dedicated folder on your machine.
