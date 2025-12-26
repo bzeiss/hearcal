@@ -65,7 +65,7 @@ pip install textual numpy pandas scipy sounddevice
 
 ## 4. Methodologies for Applying Calibration Deltas
 
-Before we dive into how to use HearCal, we must decide which correction approach we want to take as it may affect how we play back audio through HearCal. Once you have derived your personalized delta curves using HearCal, the critical task is integrating this data into your monitoring chain. The following methodologies outline the different paths you can take.
+Before we dive into how to use HearCal, we must decide which correction approach we want to take as it may affect how we play back audio through HearCal. Once you have derived your personalized delta curves using HearCal, the critical task is integrating this data into your monitoring chain. The following methodologies outline the different paths you can take. We must acknowledge that none of these approaches perfectly separate "your hearing" from "your headphones" and "your fit." Each method reduces certain sources of error while accepting others. The goal is useful approximation, not clinical precision.
 
 ### Approach 1: The "Direct" Method
 
@@ -311,6 +311,8 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
 This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point. It may also throw you off totally. Every person compensates differently for what he/she hears. It might be enough to look at the adjustment graph and just take the results as hint what to check out by manually EQing the normal Harman Over-Ear 2018 correction curve for your headphone to try something new. 
 
 It may also be worthwhile to repeat the tests spaced apart on multiple days, compare the results and then calculate an average delta. Always check your mix translations on multiple monitoring systems and adjust your EQ accordingly for what you have found out. Large differences between sessions suggest measurement noise rather than true hearing characteristics. 
+
+If you mix using a corrected profile, you must first spend significant time listening to music and reference tracks through this correction. Your brain needs to recalibrate what "normal" sounds like. Example: Suppose you're less sensitive at 4 kHz, and the correction applies a boost there. Initially, familiar music may sound harsh or bright—not because the correction is wrong, but because you're unaccustomed to hearing that frequency at its "true" level. If you immediately start mixing, you may instinctively cut 4 kHz to reduce the perceived harshness, resulting in mixes that sound dull to others. The correction only works if you internalize the new tonal balance first. Give yourself at least several hours of critical listening to reference material before making mix decisions.
 
 For tuning further, maybe try also [Owliophile](https://owliophile.com/) with and without corrective EQ.
 
