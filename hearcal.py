@@ -375,7 +375,7 @@ class HearCal(App):
         with Vertical(id="main_container"):
             yield Label("HEARCAL: PERCEPTUAL CALIBRATION", variant="title")
             yield Static(
-                "1. SPL: Set hardware volume to target level. [Ref].\n"
+                "1. SPL: Set hardware volume to target level.\n"
                 "2. MATCH: Toggle [T] for equal loudness.\n"
                 "3. VERIFY: Press [V] for randomized or sequential passes.", 
                 classes="instr", 
