@@ -102,7 +102,7 @@ C-weighting may be used if you prefer aligning physical energy rather than perce
 3.  **Target:** Position your SPL meter (or phone app) against the headphone driver and adjust your hardware volume until you hit your chosen level (**79–85 dB**).
 4.  **Hardware Marker:** Ideally, connect your amp to a fixed line-out (so levels aren't tied to an interface knob) and put a physical marker on your headphone amp volume knob. **This is now your reference level for the entire calibration.**
 
-Do not perform long calibration sessions at 85 dB. Take breaks every 10–15 minutes.
+Do not perform long calibration sessions at 85 dB. **Take breaks every 10–15 minutes.**
 
 ### Step 2: Run HearCal
 
@@ -272,7 +272,7 @@ The whole approach should be considered experimental. Feel free to share your ex
 
 ### Averaging multiple tests
 
-You can use the tool hearcal_avg.py to calculate an average profile across multiple tests. It will write two files:
+You can (and actually **SHOULD**) use the tool hearcal_avg.py to calculate an average profile across multiple tests. If you start it, you can selected multiple files and simply generate an averag. Don't average across multiple tests done in one sitting, but across multiple days, maybe even days spaced apart. The tool will write two files:
 * hearcal_avg.csv containing the average calibrated profiles
 * hearcal_avg_details.csv containing average, minimum measurement, maximum measure, standard deviation, variance and spread for each frequency measure across multiple tests
 
@@ -315,4 +315,5 @@ METRIC EXPLANATIONS:
 
 ## 6. Ideas
 * Limit the shuffling in verification mode to specific band widths in order to have neighoring frequencies that compare better.
+* Option to discard outliers in the averaging. If one trial shows a +10 dB boost at 8 kHz and the others show +2 dB, don't average it, but delete it. That was likely a measurement error (e.g., the headphone moved on your head).
 
