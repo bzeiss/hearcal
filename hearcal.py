@@ -4,6 +4,7 @@ import csv
 import os
 import random
 import threading
+from scipy import signal
 from textual.app import App, ComposeResult
 from textual.widgets import (
     Header, 
@@ -26,7 +27,7 @@ from textual.message import Message
 LFO_RATE = 4.0        # Hz: Psychoacoustic rate to bypass neural adaptation
 LFO_DEPTH = 0.05      # 5%: Prevents standing waves
 SAMPLE_RATE = 44100
-BASE_AMPLITUDE = 0.3  
+BASE_AMPLITUDE = 0.2  # Output level with headroom for gain adjustments (20% = -14 dBFS)  
 
 ISO_FREQS = [
     1000.0, 40.0, 4000.0, 125.0, 800.0, 25.0, 500.0, 12500.0, 63.0, 2500.0, 20.0, 
@@ -143,7 +144,8 @@ class VerificationScreen(Screen):
         Binding("space", "play_audio", "Play"),
         Binding("p", "toggle_playback_mode", "Seq/Pulse"),
         Binding("r", "shuffle_freqs", "Shuffle"),
-        Binding("a", "sort_ascending", "Ascending")
+        Binding("a", "sort_ascending", "Ascending"),
+        Binding("f1", "toggle_waveform", "Waveform")
     ]
 
     def __init__(self, results):
@@ -161,13 +163,15 @@ class VerificationScreen(Screen):
                 "2. [UP/DOWN]: Adjusts level +/-0.5dB.\n"
                 "3. [P]: Toggle Playback (Anchor-Gap-Test vs. Level Adjusted Only).\n"
                 "4. [R/A]: Shuffle or Sort list to re-evaluate perceptions.\n"
-                "5. [SPACE]: Re-play current selection.",
+                "5. [F1]: Toggle Waveform (Sine/Noise).\n"
+                "6. [SPACE]: Re-play current selection.",
                 classes="instr", 
                 markup=False
             )
             yield Label("", id="play_mode_label", classes="mode-indicator")
             yield Label("", id="v_freq_label")
             yield Label("", id="v_db_label", classes="mode-indicator")
+            yield Label("", id="v_waveform_label", classes="mode-indicator")
             yield ProgressBar(total=len(ISO_FREQS), id="v_pbar", show_percentage=True)
             with Horizontal():
                 yield Button("Exit (Esc)", id="exit_verify")
@@ -179,12 +183,14 @@ class VerificationScreen(Screen):
         freq = self.freq_list[self.v_idx]
         db = self.results.get(freq, 0.0)
         mode_txt = "MODE: ANCHOR-GAP-TEST" if self.mode_sequence else "MODE: LEVEL ADJUSTED ONLY"
+        waveform_txt = f"WAVEFORM: {self.app.waveform_types[self.app.waveform_idx].upper()}"
         
         self.query_one("#play_mode_label").update(mode_txt)
         self.query_one("#v_freq_label").update(
             f"Band {self.v_idx + 1}/{len(self.freq_list)}: [b]{int(freq)} Hz[/b]"
         )
         self.query_one("#v_db_label").update(f"Level: {db:+.1f} dB")
+        self.query_one("#v_waveform_label").update(waveform_txt)
         self.query_one("#v_pbar").update(progress=self.v_idx + 1)
 
     def action_toggle_playback_mode(self):
@@ -223,6 +229,11 @@ class VerificationScreen(Screen):
 
     def action_gain_down(self):
         self.results[self.freq_list[self.v_idx]] -= 0.5
+        self.update_v_ui()
+        self.action_play_audio()
+
+    def action_toggle_waveform(self):
+        self.app.waveform_idx = (self.app.waveform_idx + 1) % len(self.app.waveform_types)
         self.update_v_ui()
         self.action_play_audio()
 
@@ -321,7 +332,8 @@ class HearCal(App):
         Binding("left", "prev_freq", "Prev"),
         Binding("right", "next_freq", "Next"), 
         Binding("up", "gain_up", "+0.5dB"),
-        Binding("down", "gain_down", "-0.5dB"), 
+        Binding("down", "gain_down", "-0.5dB"),
+        Binding("f1", "toggle_waveform", "Waveform"),
         Binding("q", "quit", "Exit"),
     ]
 
@@ -369,6 +381,8 @@ class HearCal(App):
         self.results = {float(f): 0.0 for f in ISO_FREQS}
         self.is_playing = False
         self.audio_engine = AudioEngine()
+        self.waveform_types = ["sine", "noise"]
+        self.waveform_idx = 0
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -384,6 +398,7 @@ class HearCal(App):
             yield Label("MODE: REFERENCE (1000Hz)", id="mode_label", classes="mode-indicator")
             yield Label(id="freq_label")
             yield Static(id="db_display")
+            yield Label("", id="waveform_label", classes="mode-indicator")
             with Horizontal():
                 yield Button("AUDIO (Space)", variant="success", id="play_btn")
                 yield Button("TOGGLE (T)", variant="primary", id="toggle_btn")
@@ -395,12 +410,14 @@ class HearCal(App):
         freq = ISO_FREQS[self.current_idx]
         db = self.results.get(freq, 0.0)
         mode_txt = "MODE: REFERENCE" if self.active_mode == "REF" else f"MODE: TESTING ({int(freq)}Hz)"
+        waveform_txt = f"WAVEFORM: {self.waveform_types[self.waveform_idx].upper()}"
         
         self.query_one("#mode_label").update(mode_txt)
         self.query_one("#freq_label").update(
             f"Band {self.current_idx + 1}/{len(ISO_FREQS)}: [b]{int(freq)} Hz[/b]"
         )
         self.query_one("#db_display").update(f"{db:+.1f} dB")
+        self.query_one("#waveform_label").update(waveform_txt)
         self.query_one("#pbar").update(progress=self.current_idx + 1)
         
         if self.is_playing:
@@ -411,7 +428,31 @@ class HearCal(App):
         total_samples = int(max(1, round(target_duration * LFO_RATE)) * lfo_samples)
         t = np.linspace(0, total_samples / SAMPLE_RATE, total_samples, endpoint=False)
         phase = 2 * np.pi * (freq * t - (freq * LFO_DEPTH / (2 * np.pi * LFO_RATE)) * np.cos(2 * np.pi * LFO_RATE * t))
-        return (np.sin(phase) * (10**(gain_db / 20.0)) * BASE_AMPLITUDE).astype(np.float32)
+        
+        # Generate waveform based on current type
+        waveform_type = self.waveform_types[self.waveform_idx]
+        if waveform_type == "sine":
+            wave = np.sin(phase)
+        elif waveform_type == "noise":
+            # Generate bandpassed white noise
+            width_hz = 200.0
+            noise = np.random.normal(0, 1, total_samples)
+            # Steep FIR bandpass filter with boundary checking
+            nyquist = SAMPLE_RATE / 2
+            low_cutoff = max(20.0, freq - width_hz/2)  # Keep above 20Hz
+            high_cutoff = min(nyquist * 0.95, freq + width_hz/2)  # Keep below Nyquist
+            taps = 2001
+            b = signal.firwin(taps, [low_cutoff, high_cutoff], 
+                            pass_zero=False, fs=SAMPLE_RATE)
+            wave = signal.lfilter(b, 1.0, noise)
+            # RMS normalization to match sine wave RMS (1/sqrt(2))
+            rms = np.sqrt(np.mean(wave**2))
+            if rms > 0:
+                wave = wave / rms / np.sqrt(2)  # Divide by sqrt(2) to match sine wave RMS
+        else:
+            wave = np.sin(phase)
+        
+        return (wave * (10**(gain_db / 20.0)) * BASE_AMPLITUDE).astype(np.float32)
 
     def action_play_stop(self):
         self.is_playing = not self.is_playing
@@ -430,6 +471,10 @@ class HearCal(App):
 
     def action_toggle_tone(self):
         self.active_mode = "TEST" if self.active_mode == "REF" else "REF"
+        self.update_ui()
+
+    def action_toggle_waveform(self):
+        self.waveform_idx = (self.waveform_idx + 1) % len(self.waveform_types)
         self.update_ui()
 
     def action_enter_verify(self):

@@ -44,7 +44,7 @@ To implement the HearCal workflow, you will need:
 * **SPL Meter:** Capable of **A-weighting** and **C-weighting** (a smartphone app can work, though a dedicated meter is more accurate).
 * **Headphone Amplifier:** A clean, high-quality amp is recommended to ensure your headphones have sufficient headroom.
 * **Python 3.10+**: The core environment for the script.
-* **PIP Packages**: `textual`, `numpy`, 'pandaa' and `sounddevice`.
+* **PIP Packages**: `textual`, `numpy`, `pandas`, `scipy` and `sounddevice`.
 * **REW (Room EQ Wizard)**: Used for arithmetic.
 * **Target Curve:** The Harman Over-Ear 2018 (or your preferred AutoEQ target) in .csv or .txt format.
 * **Equalizer Software**: **[Toneboosters Equalizer Pro](https://www.toneboosters.com/tb_equalizer_pro.html)**: Recommended for cross-platform support. A converter from EqualizerAPO to TB format is included in this repo. *Alternatives*: Apulsoft **[ApQualizer2](https://www.apulsoft.ch/apqualizr2/)** supports import of EqualizerAPO equalizer profiles directly. Fabfilter **Pro-Q3/4** requires the multiplication of the Q factor by 1.41!
@@ -56,7 +56,7 @@ To implement the HearCal workflow, you will need:
 1. **Install Python**: Download from [python.org](https://www.python.org/) for Windows. On MacOS, I think it is already preinstalled. You may have to look this up. On Linux, install Python with the package manager of your distribution.
 2. **Install Dependencies**: Open your terminal or command prompt and run:
 ```bash
-pip install textual numpy sounddevice pandas
+pip install textual numpy pandas scipy sounddevice
 ```
 
 3. **Download HearCal**: Clone this repository or download the hearcal.py script to a dedicated folder on your machine.
@@ -118,6 +118,8 @@ The objective of this phase is to establish a baseline by matching the perceived
 3. **Toggle Mode [T]**: Press **`[T]`** to switch between the **Reference Tone** (1000Hz, which never changes volume) and the **Test Tone** (the frequency you are currently adjusting).
 4. **Adjust Volume**: Use the **`[UP/DOWN]`** cursor keys to change the level of the test tone until it sounds exactly as loud as the 1000Hz reference.
 5. **Navigate Bands**: Use **`[LEFT/RIGHT]`** cursor keys to move to the next frequency band. Perform this adjustment for all 31 ISO bands.
+
+You can adjust the tone between sine/band-passed noise by pressing **`[F1]`**.
 
 Bear in mind that most headphones may have limitations in their frequency response. Models like the Sennheiser HD650 roll off the low end. As a result, you probably will not hear a lot in the tests in those frequency areas. If you don't hear anything, don't move up the level a lot. I suggest upper and lower limits of max. 5-6 dBs. If you know the frequency response of your headphone and know that it's correct that you don't hear a lot at a specific frequency, don't adjust the volume as in the end this will only tamper with the target curve. Make notes of your decisions on things like that as you'll need these notes when you repeat the tests.
 
@@ -266,8 +268,49 @@ For tuning further, maybe try also [Owliophile](https://owliophile.com/) with an
 
 The whole approach should be considered experimental. Feel free to share your experiences in the discussion area and possibly your knowledge from experience or research.
 
+### Averaging multiple tests
+
+You can use the tool hearcal_avg.py to calculate an average profile across multiple tests. It will write two files:
+* hearcal_avg.csv containing the average calibrated profiles
+* hearcal_avg_details.csv containing average, minimum measurement, maximum measure, standard deviation, variance and spread for each frequency measure across multiple tests
+
+It will also display a brief report with the statistics across multiple tests. It looks something like this:
+
+```
+===========================================================================
+ HEARCAL AVERAGER: FILE COMPARISON & AVERAGE
+===========================================================================
+Source Files:    test1.csv, test2.csv
+Main Average:    hearcal_avg.csv
+Detailed Stats:  hearcal_avg_details.csv
+---------------------------------------------------------------------------
+[CONSISTENCY SUMMARY]
+  Average Gap:     0.23 dB (Typical variance across all bands)
+  Largest Gap:     0.50 dB at 20.0 Hz
+---------------------------------------------------------------------------
+BAND         |  AVG VAL | MAX DIFF |      VAR | STATUS
+---------------------------------------------------------------------------
+Sub          |     -0.5 |      0.5 |      0.1 | Stable
+Bass         |      0.1 |      0.5 |      0.0 | Stable
+Low-Mid      |      0.5 |      0.0 |      0.0 | Stable
+Mid          |     -0.3 |      0.5 |      0.1 | Stable
+High-Mid     |      0.1 |      0.5 |      0.0 | Stable
+High         |      0.1 |      0.5 |      0.0 | Stable
+Air          |     -0.3 |      0.5 |      0.1 | Stable
+---------------------------------------------------------------------------
+METRIC EXPLANATIONS:
+  AVG VAL:  The final average loudness offset used for your profile.
+  MAX DIFF: The largest disagreement between your test runs in this band.
+  VAR:      Statistical variance. High numbers mean tests were inconsistent.
+  STATUS:   'Stable' means your test runs matched closely in this range.
+---------------------------------------------------------------------------
+[SETUP RELIABILITY]
+  Thumbs Up: Your measurements are very consistent.
+===========================================================================
+```
+
 ---
 
 ## 6. Ideas
-* Allow the option to use band-limited noise (e.g., 1/3-oct noise) (or maybe even band-limited music?) for a test tone. Sine tones can exaggerate narrow resonances and standing-wave effects in the ear canal and are not how broadband music is perceived.
+* Limit the shuffling in verification mode to specific band widths in order to have neighoring frequencies that compare better.
 
