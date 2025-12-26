@@ -22,8 +22,8 @@ Be aware that real hearing loss cannot be compensated with this tool.
 
 HearCal is a cross-platform command-line application with a Terminal User Interface (TUI). It is designed to be lightweight, easy to adapt, and low-maintenance. While it requires basic technical knowledge to run, the calibration process itself is intuitive.
 
-<img width="815" height="637" alt="image" src="https://github.com/user-attachments/assets/86848267-ee4c-4589-9d91-d939629ae82b" />
-<img width="802" height="638" alt="image" src="https://github.com/user-attachments/assets/0a9869ad-6cb0-4bad-80dc-78b06c2ce572" />
+<img width="836" height="673" alt="image" src="https://github.com/user-attachments/assets/4af636a1-5fda-4d48-86e0-2a7a867aa580" />
+<img width="828" height="668" alt="image" src="https://github.com/user-attachments/assets/77499283-44fc-4111-80ba-1fba7ceed764" />
 
 ### Project Status & Disclaimers
 
