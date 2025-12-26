@@ -123,7 +123,12 @@ The objective of this phase is to establish a baseline by matching the perceived
 
 You can adjust the tone between sine/band-passed noise by pressing **`[F1]`**.
 
-Bear in mind that most headphones may have limitations in their frequency response. Models like the Sennheiser HD650 roll off the low end. As a result, you probably will not hear a lot in the tests in those frequency areas. If you don't hear anything, don't move up the level a lot. I suggest upper and lower limits of max. 5-6 dBs. If you know the frequency response of your headphone and know that it's correct that you don't hear a lot at a specific frequency, don't adjust the volume as in the end this will only tamper with the target curve. Make notes of your decisions on things like that as you'll need these notes when you repeat the tests.
+**Important: Respect the Physical Limits of your Hardware**
+
+1. **Avoid "Ghost Chasing":** Many professional headphones (e.g., Sennheiser HD6XX series) have a natural low-end roll-off. If you cannot hear a sub-bass frequency clearly, **do not attempt to force it** by applying massive gains. Limit your adjustments to a maximum of **±6 dB**. If a frequency is still inaudible at +6 dB, leave it at 0 dB (no correction) to avoid damaging your drivers or your hearing.
+2. **Distortion is a Hard Ceiling:** If a test tone begins to sound "grainy," "buzzing," or changes in character (timbre) as you increase the level, you have hit the driver’s **Total Harmonic Distortion (THD)** limit. Any EQ correction beyond this point will degrade your audio quality rather than improve it.
+3. **Know your Tool:** If your headphone's technical specifications show a steep drop-off at a certain frequency, accept that as a "blind spot." It is better to have a known roll-off than a distorted, phase-smeared correction.
+4. **Document your Constraints:** Make detailed notes of your decisions (e.g., "At 30 Hz, tone was inaudible even at +6 dB; correction left at 0 dB"). You will need these notes when you repeat the tests in the future to ensure that your calibration delta remains consistent and is not influenced by varying "guesses" in these blind spots.
 
 #### Phase 2: Verification (The "Reality Check")
 
