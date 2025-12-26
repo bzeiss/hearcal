@@ -3,6 +3,7 @@ import sounddevice as sd
 import csv
 import os
 import random
+import threading
 from textual.app import App, ComposeResult
 from textual.widgets import (
     Header, 
@@ -67,8 +68,17 @@ class OverwriteScreen(Screen):
 class FileBrowserScreen(Screen):
     BINDINGS = [
         Binding("escape", "dismiss_screen", "Exit"), 
-        Binding("enter", "submit", "Confirm")
+        Binding("enter", "submit", "Confirm"),
+        Binding("up", "ignore", "", show=False),
+        Binding("down", "ignore", "", show=False),
+        Binding("left", "ignore", "", show=False),
+        Binding("right", "ignore", "", show=False)
     ]
+    
+    def action_ignore(self) -> None:
+        """Consume arrow key events to prevent bubbling to main app."""
+        pass
+
     def __init__(self, mode="load"):
         super().__init__()
         self.mode = mode
@@ -119,6 +129,9 @@ class FileBrowserScreen(Screen):
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         self.action_submit()
+    
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self.action_submit()
 
 class VerificationScreen(Screen):
     BINDINGS = [
@@ -146,7 +159,7 @@ class VerificationScreen(Screen):
             yield Static(
                 "1. [L/R]: Navigates frequency list.\n"
                 "2. [UP/DOWN]: Adjusts level +/-0.5dB.\n"
-                "3. [P]: Toggle Playback (Anchor-Gap-Test vs. Pulse Only).\n"
+                "3. [P]: Toggle Playback (Anchor-Gap-Test vs. Level Adjusted Only).\n"
                 "4. [R/A]: Shuffle or Sort list to re-evaluate perceptions.\n"
                 "5. [SPACE]: Re-play current selection.",
                 classes="instr", 
@@ -165,13 +178,13 @@ class VerificationScreen(Screen):
     def update_v_ui(self):
         freq = self.freq_list[self.v_idx]
         db = self.results.get(freq, 0.0)
-        mode_txt = "MODE: ANCHOR-GAP-TEST" if self.mode_sequence else "MODE: PULSE ONLY"
+        mode_txt = "MODE: ANCHOR-GAP-TEST" if self.mode_sequence else "MODE: LEVEL ADJUSTED ONLY"
         
         self.query_one("#play_mode_label").update(mode_txt)
         self.query_one("#v_freq_label").update(
             f"Band {self.v_idx + 1}/{len(self.freq_list)}: [b]{int(freq)} Hz[/b]"
         )
-        self.query_one("#v_db_label").update(f"Offset: {db:+.1f} dB")
+        self.query_one("#v_db_label").update(f"Level: {db:+.1f} dB")
         self.query_one("#v_pbar").update(progress=self.v_idx + 1)
 
     def action_toggle_playback_mode(self):
@@ -221,15 +234,82 @@ class VerificationScreen(Screen):
         if self.mode_sequence:
             ref = self.app.generate_seamless_warble(1000.0, 0.0, 1.2)
             silence = np.zeros(int(SAMPLE_RATE * 0.3), dtype=np.float32)
-            sd.play(np.concatenate([ref, silence, test_tone]), SAMPLE_RATE)
-        else: 
-            sd.play(test_tone, SAMPLE_RATE)
+            self.app.audio_engine.play(np.concatenate([ref, silence, test_tone]), loop=False)
+        else:
+            # Level Adjusted Only mode: continuous looping
+            self.app.audio_engine.play(test_tone, loop=True)
 
     def action_dismiss_screen(self):
-        self.app.pop_screen()
+        self.app.audio_engine.clear()
+        self.dismiss()
 
     def on_button_pressed(self, event):
-        self.action_dismiss_screen()
+        self.app.audio_engine.clear()
+        self.dismiss()
+
+class AudioEngine:
+    """Simple persistent audio stream to avoid device open/close crackling."""
+    def __init__(self):
+        self.stream = None
+        self.current_audio = np.array([], dtype=np.float32)
+        self.position = 0
+        self.is_looping = False
+        self.lock = threading.Lock()
+    
+    def callback(self, outdata, frames, time_info, status):
+        with self.lock:
+            if len(self.current_audio) == 0:
+                outdata.fill(0)
+                return
+            
+            # Get samples from current position
+            remaining = len(self.current_audio) - self.position
+            if remaining >= frames:
+                # Simple case: enough samples available
+                outdata[:] = self.current_audio[self.position:self.position + frames].reshape(-1, 1)
+                self.position += frames
+            elif self.is_looping:
+                # Loop case: wrap around
+                outdata[:remaining] = self.current_audio[self.position:].reshape(-1, 1)
+                self.position = frames - remaining
+                outdata[remaining:] = self.current_audio[:self.position].reshape(-1, 1)
+            else:
+                # End of non-looping audio
+                outdata[:remaining] = self.current_audio[self.position:].reshape(-1, 1)
+                outdata[remaining:].fill(0)
+                self.position = len(self.current_audio)
+    
+    def start(self):
+        """Open audio stream."""
+        if self.stream is None:
+            self.stream = sd.OutputStream(
+                samplerate=SAMPLE_RATE,
+                channels=1,
+                callback=self.callback,
+                dtype=np.float32
+            )
+            self.stream.start()
+    
+    def stop(self):
+        """Close audio stream."""
+        if self.stream:
+            self.stream.stop()
+            self.stream.close()
+            self.stream = None
+    
+    def play(self, audio_data, loop=False):
+        """Load new audio into buffer."""
+        with self.lock:
+            self.current_audio = audio_data.astype(np.float32)
+            self.position = 0
+            self.is_looping = loop
+    
+    def clear(self):
+        """Clear audio buffer."""
+        with self.lock:
+            self.current_audio = np.array([], dtype=np.float32)
+            self.position = 0
+            self.is_looping = False
 
 class HearCal(App):
     BINDINGS = [
@@ -288,6 +368,7 @@ class HearCal(App):
         self.current_idx = 0 
         self.results = {float(f): 0.0 for f in ISO_FREQS}
         self.is_playing = False
+        self.audio_engine = AudioEngine()
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -335,7 +416,7 @@ class HearCal(App):
     def action_play_stop(self):
         self.is_playing = not self.is_playing
         if not self.is_playing:
-            sd.stop()
+            self.audio_engine.clear()
         else:
             self.run_audio()
         self.query_one("#play_btn").label = "STOP" if self.is_playing else "START"
@@ -345,7 +426,7 @@ class HearCal(App):
             return
         freq = 1000.0 if self.active_mode == "REF" else ISO_FREQS[self.current_idx]
         gain = 0.0 if self.active_mode == "REF" else self.results.get(freq, 0.0)
-        sd.play(self.generate_seamless_warble(freq, gain), SAMPLE_RATE, loop=True)
+        self.audio_engine.play(self.generate_seamless_warble(freq, gain), loop=True)
 
     def action_toggle_tone(self):
         self.active_mode = "TEST" if self.active_mode == "REF" else "REF"
@@ -354,18 +435,21 @@ class HearCal(App):
     def action_enter_verify(self):
         if self.is_playing:
             self.action_play_stop()
-        self.push_screen(VerificationScreen(self.results))
-
-    def action_request_load(self): 
-        self.push_screen(FileBrowserScreen(mode="load"))
+        self.push_screen(VerificationScreen(self.results), callback=self._on_verify_return)
     
-    def action_request_save(self): 
-        self.push_screen(FileBrowserScreen(mode="save"))
+    def _on_verify_return(self, _):
+        """Called when verification screen is dismissed."""
+        self.update_ui()
 
     def on_file_selected(self, message: FileSelected) -> None:
         fn = message.filename
         if message.mode == "load":
             try:
+                # Clear and reset all results to 0.0 before loading (preserves dict reference)
+                self.results.clear()
+                for f in ISO_FREQS:
+                    self.results[float(f)] = 0.0
+                
                 with open(fn, 'r') as f:
                     for row in csv.DictReader(f):
                         f_in = float(row['frequency'])
@@ -382,6 +466,18 @@ class HearCal(App):
                 for freq in sorted(ISO_FREQS): 
                     w.writerow([f"{freq:.2f}", f"{self.results[freq]:.2f}"])
             self.notify(f"Saved: {fn}")
+        
+        # Dismiss file browser screen after operation completes
+        for screen in self.screen_stack:
+            if isinstance(screen, FileBrowserScreen):
+                self.pop_screen()
+                break
+
+    def action_request_load(self): 
+        self.push_screen(FileBrowserScreen(mode="load"))
+    
+    def action_request_save(self): 
+        self.push_screen(FileBrowserScreen(mode="save"))
 
     def action_gain_up(self): 
         self.results[ISO_FREQS[self.current_idx]] += 0.5
@@ -400,7 +496,11 @@ class HearCal(App):
         self.update_ui()
 
     def on_mount(self): 
+        self.audio_engine.start()
         self.update_ui()
+    
+    def on_unmount(self):
+        self.audio_engine.stop()
 
 if __name__ == "__main__": 
     HearCal().run()
