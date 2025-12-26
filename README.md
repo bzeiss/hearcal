@@ -18,6 +18,8 @@ The tool is designed to give an indication of where perceptual deviations might 
    > **⚠️ Recommended Workflow for Mixing**  
    > Start with your headphone's Harman EQ *without* personal hearing correction. Only try to use HearCal if you experience consistent translation problems. Then A/B test to verify the correction actually helps your mixes.
 
+*Note on the 1 kHz Reference:* This tool assumes your hearing at 1 kHz is "neutral" relative to adjacent frequencies. If you have a significant peak or dip at exactly 1 kHz, your entire curve will be tilted. A future version may include anchor verification (see Ideas section).
+
 Be aware that real hearing loss cannot be compensated with this tool.
 
 HearCal is a cross-platform command-line application with a Terminal User Interface (TUI). It is designed to be lightweight, easy to adapt, and low-maintenance. While it requires basic technical knowledge to run, the calibration process itself is intuitive.
@@ -30,6 +32,12 @@ HearCal is a cross-platform command-line application with a Terminal User Interf
 * Experimental Tool: This project is a functional implementation of psychoacoustic principles, but I am not an acoustics professional or physicist. It is a "community-driven" attempt to add another tool in the toolbox that may help to improve headphone monitoring accuracy.
 * Contributions: If you have expertise in psychoacoustics or Python and see room for improvement, merge requests are welcome! The goal is to keep the tool effective yet simple and maintainable.
 * AI Integration: Parts of this documentation and code were developed or refined with the assistance of AI to ensure clarity and provide a starting point for development.
+
+### When HearCal Is NOT Appropriate
+* If you suspect significant hearing loss (see an audiologist first)
+* If your headphones have severe frequency response problems (>10 dB deviations)—fix the hardware first
+* If your mixes translate well already—don't fix what isn't broken
+* If you cannot maintain a consistent headphone fit between sessions
 
 ### Credits
 
@@ -53,7 +61,7 @@ To implement the HearCal workflow, you will need:
 
 ## 3. Installation
 
-1. **Install Python**: Download from [python.org](https://www.python.org/) for Windows. On MacOS, I think it is already preinstalled. You may have to look this up. On Linux, install Python with the package manager of your distribution.
+1. **Install Python**: Download from [python.org](https://www.python.org/) for Windows. On macOS, Python 3 may need to be installed separately—check by running `python3 --version` in Terminal, or install via python.org or Homebrew. You may have to look this up. On Linux, install Python with the package manager of your distribution.
 2. **Install Dependencies**: Open your terminal or command prompt and run:
 ```bash
 pip install textual numpy pandas scipy sounddevice
@@ -82,7 +90,7 @@ This method attempts to isolate your unique hearing profile by first "zeroing ou
 * **The Logic:** You apply a baseline EQ to make the headphones "flat" (Diffuse Field) before starting the HearCal test. It is vital that this baseline is "rig-specific." If the measurements for your headphones were taken on a **GRAS 43AG/45BC** (the industry standard for years), you must use a GRAS Diffuse Field target. If they were taken on the newer **B&K 5128**, use that specific 5128 diffuse field target. These rigs simulate the human ear differently, and mixing them up will introduce mathematical errors.
 * **The Benefit:** By neutralizing the headphones first, you ensure that HearCal is only measuring the **Transfer Function Delta**—the difference between a "standardized average ear" and your actual anatomy. This minimizes the influence of manufacturing tolerances and prevents the headphones' specific "flavor" from biasing your loudness matching.
 
-### Approach 3: The "Hybrid Integration" Method (The Professional Standard)
+### Approach 3: The "Hybrid Integration" Method (Recommended)
 
 To achieve a better level of monitoring transparency, we use a multi-stage process that accounts for both hardware variance and the natural "mood swings" of human hearing.
 
@@ -306,21 +314,25 @@ Once you have your EqualizerAPO filters from Squig.link, you need to load them i
 
 ---
 
-## 5. Verifying Translation & Making Adjustments
+## 6. Verifying Translation & Making Adjustments
 
 This is only a starting point. If you figure out, that a boost in a specific area due the corrected target curve leads to dull mixes in a specific frequency area when listening on different monitoring system, you need to adjust the equalization or the target curve down in that area and vice-versa for better translation. This tool and the target curve will not give you the ideal solution, but just *maybe* a better starting point. It may also throw you off totally. Every person compensates differently for what he/she hears. It might be enough to look at the adjustment graph and just take the results as hint what to check out by manually EQing the normal Harman Over-Ear 2018 correction curve for your headphone to try something new. 
 
 It may also be worthwhile to repeat the tests spaced apart on multiple days, compare the results and then calculate an average delta. Always check your mix translations on multiple monitoring systems and adjust your EQ accordingly for what you have found out. Large differences between sessions suggest measurement noise rather than true hearing characteristics. 
 
-If you mix using a corrected profile, you must first spend significant time listening to music and reference tracks through this correction. Your brain needs to recalibrate what "normal" sounds like. Example: Suppose you're less sensitive at 4 kHz, and the correction applies a boost there. Initially, familiar music may sound harsh or bright—not because the correction is wrong, but because you're unaccustomed to hearing that frequency at its "true" level. If you immediately start mixing, you may instinctively cut 4 kHz to reduce the perceived harshness, resulting in mixes that sound dull to others. The correction only works if you internalize the new tonal balance first. Give yourself at least several hours of critical listening to reference material before making mix decisions.
-
-For tuning further, maybe try also [Owliophile](https://owliophile.com/) with and without corrective EQ.
+  >**⚠️ Adaptation Period Required**
+  >
+  >If you mix using a corrected profile, you should first spend significant time listening to music and reference tracks through this correction. Your brain needs to recalibrate what "normal" sounds like. 
+  >
+  >*Example:* Suppose you're less sensitive at 4 kHz, and the correction applies a boost there. Initially, familiar music may sound harsh or bright—not because the correction is wrong, but because you're unaccustomed to hearing that frequency at its "true" level. If you immediately start mixing, you may instinctively cut 4 kHz to reduce the perceived harshness, resulting in mixes that sound dull to others. The correction only works if you internalize the new tonal balance first. 
+  >
+  > Give yourself at least several hours of critical listening to reference material before making mix decisions.
 
 The whole approach should be considered experimental. Feel free to share your experiences in the discussion area and possibly your knowledge from experience or research.
 
 ### Averaging multiple tests
 
-You can (and actually **SHOULD**) use the tool hearcal_avg.py to calculate an average profile across multiple tests. If you start it, you can selected multiple files and simply generate an averag. Don't average across multiple tests done in one sitting, but across multiple days, maybe even days spaced apart. The tool will write two files:
+You can (and actually **SHOULD**) use the tool hearcal_avg.py to calculate an average profile across multiple tests. If you start it, you can selected multiple files and simply generate an average. Don't average across multiple tests done in one sitting, but across multiple days, maybe even days spaced apart. The tool will write two files:
 * hearcal_avg.csv containing the average calibrated profiles
 * hearcal_avg_details.csv containing average, minimum measurement, maximum measure, standard deviation, variance and spread for each frequency measure across multiple tests
 
@@ -361,7 +373,7 @@ METRIC EXPLANATIONS:
 
 ---
 
-## 6. Ideas
+## 7. Ideas
 * Limit the shuffling in verification mode to specific band widths in order to have neighboring frequencies that compare better.
 * Option to discard outliers in the averaging. If one trial shows a +10 dB boost at 8 kHz and the others show +2 dB, don't average it, but delete it. That was likely a measurement error (e.g., the headphone moved on your head).
 * 1000Hz anchor may tilt everything if the user has a dip or peak at exactly this frequency. It might make sense to verify the anchor: the user compares 1kHz vs. 500Hz and 1kHz vs. 2kHz at the very beginning to ensure their "Zero Point" is actually stable
