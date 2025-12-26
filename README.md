@@ -119,9 +119,11 @@ The objective of this phase is to establish a baseline by matching the perceived
 4. **Adjust Volume**: Use the **`[UP/DOWN]`** cursor keys to change the level of the test tone until it sounds exactly as loud as the 1000Hz reference.
 5. **Navigate Bands**: Use **`[LEFT/RIGHT]`** cursor keys to move to the next frequency band. Perform this adjustment for all 31 ISO bands.
 
+Bear in mind that most headphones may have limitations in their frequency response. Models like the Sennheiser HD650 roll off the low end. As a result, you probably will not hear a lot in the tests in those frequency areas. If you don't hear anything, don't move up the level a lot. I suggest upper and lower limits of max. 5-6 dBs. If you know the frequency response of your headphone and know that it's correct that you don't hear a lot at a specific frequency, don't adjust the volume as in the end this will only tamper with the target curve. Make notes of your decisions on things like that as you'll need these notes when you repeat the tests.
+
 #### Phase 2: Verification (The "Reality Check")
 
-Phase 1 establishes an initial estimate. Phase 2 is where perceptual bias is actively challenged, and results should not be considered reliable unless they hold up under shuffle and pulse-only testing.
+Phase 1 establishes an initial estimate. Phase 2 is where perceptual bias is actively challenged, and results should not be considered reliable unless they hold up under shuffle and level-adjusted testing.
 
 Press **`[V]`** to enter the refinement screen. This phase uses a more advanced methodology to eliminate "loudness adaptation"—the phenomenon where your brain adjusts to a sound, making it seem quieter than it actually is.
 
@@ -129,7 +131,7 @@ Press **`[V]`** to enter the refinement screen. This phase uses a more advanced 
 * If the second tone sounds louder than the first, press **`[DOWN]`**.
 * If the second tone sounds quieter, press **`[UP]`**.
 
-* **Pulse-Only Mode [P]**: Press **`[P]`** to disable the anchor and play only the level-adjusted pulse of the current frequency. This helps you hear how a frequency sits in isolation. In this mode, step through the frequency bands by pressing **`[LEFT]`** and **`[RIGHT]`** and compare whether they are the perceived same loudness next to each other. If not, adjust them.
+* **Level Adjusted Only Mode [P]**: Press **`[P]`** to disable the anchor and play only the level-adjusted pulse of the current frequency. This helps you hear how a frequency sits in isolation. In this mode, step through the frequency bands by pressing **`[LEFT]`** and **`[RIGHT]`** and compare whether they are the perceived same loudness next to each other. If not, adjust them.
 * **Shuffle Mode [R]**: Press **`[R]`** to randomize the order of the frequency bands. This is the most critical step; it prevents your brain from "expecting" the next sound and forces an honest comparison between unrelated frequencies (e.g., comparing 60Hz directly after 8kHz).
 * **Ascending Mode [A]**: Press **`[A]`** to restore the standard frequency order for a final sweep to ensure the loudness feels smooth and linear from bottom to top.
 
