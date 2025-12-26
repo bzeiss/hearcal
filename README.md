@@ -63,7 +63,42 @@ pip install textual numpy pandas scipy sounddevice
 
 ---
 
-## 4. Usage
+## 4. Methodologies for Applying Calibration Deltas
+
+Before we dive into how to use HearCal, we must decide which correction approach we want to take as it may affect how we play back audio through HearCal. Once you have derived your personalized delta curves using HearCal, the critical task is integrating this data into your monitoring chain. The following methodologies outline the different paths you can take.
+
+### Approach 1: The "Direct" Method
+
+In this approach, you run HearCal on the raw, unequalized output of your headphones. 
+
+* **The Logic:** This treats the entire monitoring chain as one single system. The resulting curve represents the "total system error"—the combined frequency response deviations of the headphone drivers, the physical enclosure, and your unique hearing physiology all baked into one delta.
+* **The Risk of Double-Correction:** The biggest danger here is "Double Compensation." If you later apply a standard calibration preset using a headphone measurement (be it generalized or specific for your headphone), you will be fixing the same hardware flaws twice. 
+* **The Problem with Raw Resonances:** Even though HearCal uses noise and warble tones to help you hear through peaks, running a test on uncorrected headphones means you are often pushing the driver into its non-linear range. If your headphones have a massive +8dB resonance at 6kHz, your brain has to work much harder to judge loudness accurately in that area. This can lead to a "tilted" delta curve that is more about fighting the headphone's character than mapping your actual hearing.
+
+### Approach 2: The "Neutralized" Method
+
+This method attempts to isolate your unique hearing profile by first "zeroing out" the hardware variables of the headphone.
+
+* **The Logic:** You apply a baseline EQ to make the headphones "flat" (Diffuse Field) before starting the HearCal test. It is vital that this baseline is "rig-specific." If the measurements for your headphones were taken on a **GRAS 43AG/45BC** (the industry standard for years), you must use a GRAS Diffuse Field target. If they were taken on the newer **B&K 5128**, use that specific 5128 diffuse field target. These rigs simulate the human ear differently, and mixing them up will introduce mathematical errors.
+* **The Benefit:** By neutralizing the headphones first, you ensure that HearCal is only measuring the **Transfer Function Delta**—the difference between a "standardized average ear" and your actual anatomy. This minimizes the influence of manufacturing tolerances and prevents the headphones' specific "flavor" from biasing your loudness matching.
+
+### Approach 3: The "Hybrid Integration" Method (The Professional Standard)
+
+To achieve a better level of monitoring transparency, we use a multi-stage process that accounts for both hardware variance and the natural "mood swings" of human hearing.
+
+1.  **Baseline Normalization:** Apply a rig-accurate Diffuse Field (DF) correction first. This "levels the playing field" by removing the headphone's built-in peaks and dips.
+2.  **Psychophysical Isolation:** Run the HearCal test *through* this correction. You are now mapping your personal **Equal-Loudness Contour** against a neutral acoustic reference, rather than fighting the headphone's character.
+3.  **Statistical Averaging:** Human perception is volatile, influenced by blood pressure, caffeine, and fatigue. Perform at least three sessions at different times of the day (e.g., morning, mid-day, and after a break). Use the provided averaging tool to derive a "Master Delta," which significantly reduces the margin of error.
+4.  **Verification (The Sanity Check):** Once your combined curve is active, listen to **correlated pink noise.** It should sound like a smooth, colorless "waterfall." If you hear distinct "whistling" (resonant peaks) or "hollow" sounds (phase cancellations), your EQ filters may be too sharp or you have over-corrected a physical limitation.
+
+### Implementation Fundamentals
+
+* **Temporal Stability:** Never trust a single measurement session. Because our ears change throughout the day, a single "snapshot" can lead to a mix that sounds great at 10 PM but thin and harsh at 10 AM. Averaging is your best defense against this.
+* **Filter Topology:** Your personal hearing profile should generally be applied with **low-Q (broad) filters.** Human hearing response doesn't typically have razor-sharp notches. Using "surgical" EQ for your personal delta can cause phase smearing and "ringing," which destroys the transient detail you need for mixing drums and percussion. Stick to **Minimum-Phase filters**. While Linear-Phase filters keep the phase "straight," they introduce pre-ringing, which smears the transients of your drums. Minimum-phase filters keep the ringing after the hit (where it is masked by the sound), preserving the "snap" of your mix.
+
+---
+
+## 5. Usage
 
 ### Step 1: Adjust your headphones to the calibration loudness
 
@@ -81,14 +116,14 @@ Human hearing is naturally non-linear. At low volumes (around 40–60 dB), your 
 While 85 dB is the theoretical sweet spot for room calibration, it can be fatiguing over a long 8-hour session. Many engineers follow these practical guidelines:
 
 * **Small Rooms/Headphones:** Due to ear fatigue, many professionals prefer monitoring at **76 dB to 80 dB SPL** for the bulk of a session.
-* **The "Check" Method:** It is common practice to do the majority of the work at a moderate level (75–80 dB) and then turn the volume up to **85 dB** specifically for "checking" the low-end and high-end balance before turning it back down. Bear also in mind that some headphones may show more clarity and bass punch at higher levels 80-85 dB. It's unclear whether there is real scientific work on this.
+* **The "Check" Method:** It is common practice to do the majority of the work at a moderate level (75–80 dB) and then turn the volume up to **85 dB** specifically for "checking" the low-end and high-end balance before turning it back down. Also bear in mind that some headphones may show more clarity and bass punch at higher levels 80-85 dB. It's unclear whether there is real scientific work on this.
 
 The most important point is: choose one SPL loudness and calibrate to the loudness you mix at. If you mix at different levels, like 76 to 80 dB for long session and 85 dB for checking, you should likely perform the test multiple times at exactly these differing levels as the test assumes one specific loudness and adjusts to it.
 
 #### Headphone Calibration with an SPL Meter
 To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** or **C-weighting** and a **Slow** response time. Be aware that the approach shown below will not yield exact results and may easily be off by a few dBs.
 
-**NOTE**: as HearCal needs headroom to adjust the level upwards, audio cannot be play at 0 in HearCal to match an external calibration. As a result, I suggest, for now, to calibrate to 1000Hz (the reference tone) in HearCal to the target level. So in the end you will need a loudness calibration within HearCal (due to the required headroom for testing) and outside of HearCal to that same level.
+**NOTE**: as HearCal needs headroom to adjust the level upwards, audio cannot be played at 0 in HearCal to match an external calibration. As a result, I suggest, for now, to calibrate to 1000Hz (the reference tone) in HearCal to the target level. So in the end you will need a loudness calibration within HearCal (due to the required headroom for testing) and outside of HearCal to that same level.
 
 While C-weighting is often used for room calibration, **A-weighting** is sometimes recommended by experienced mixers here for a specific reason:
 * **Sub-bass filtering:** Sub-bass produces a massive amount of physical energy that registers high on a meter, but for many people, it is much less "present" in their actual hearing than the mids and highs. 
@@ -97,12 +132,12 @@ While C-weighting is often used for room calibration, **A-weighting** is sometim
 C-weighting may be used if you prefer aligning physical energy rather than perceptual loudness, but consistency is more important than choice. The jury is still out on this.
 
 **Calibration Procedure:**
-1.  **Set Meter:** Select **A-Weighting** and **Slow** response (this averages the "peaks" and "valleys" of the noise over 1 second for a steady reading).
+1.  **Set Meter:** Select your weighting choice and **Slow** response (this averages the "peaks" and "valleys" of the noise over 1 second for a steady reading).
 2.  **Signal:** Play **Pink Noise** (some mixers prefer brown noise or variations of brown noise) through one side of your headphones.
 3.  **Target:** Position your SPL meter (or phone app) against the headphone driver and adjust your hardware volume until you hit your chosen level (**79–85 dB**).
 4.  **Hardware Marker:** Ideally, connect your amp to a fixed line-out (so levels aren't tied to an interface knob) and put a physical marker on your headphone amp volume knob. **This is now your reference level for the entire calibration.**
 
-Do not perform long calibration sessions at 85 dB. **Take breaks every 10–15 minutes.**
+You now have calibrated your headphones "externally" to the target level(s) you should mix at. HearCal does not play back at that same output target volume as it needs some headroom for the level adjustment. More on that below in Step 2.
 
 ### Step 2: Run HearCal
 
@@ -114,6 +149,8 @@ python hearcal.py
 #### Phase 1: Calibration (A/B Comparison)
 
 The objective of this phase is to establish a baseline by matching the perceived volume of various frequencies to a constant 1000Hz anchor. 31 ISO bands are used as a compromise between perceptual resolution, calibration time, and listener fatigue.
+
+If you follow Approach 1, you don't need to do anything beforehand. For Approach 2-3, you'll need to make sure you equalize your headphones towards the correct diffuse field target curve of the measurement rig of your headphone measurement first and then playback the HearCal audio through it. 
 
 1. **Reference Level**: Ensure your hardware is set to your marked calibration level (e.g., **85dB SPL**).
 2. **Start Audio**: Press **`[SPACE]`** to begin generating sound.
@@ -155,9 +192,11 @@ Once you are confident that every frequency band is perceived at an equal loudne
 
 *Note: You do not need to finish the calibration in one sitting. You can press **`[L]`** at any time to load your last saved state and continue refining your profile later.*
 
-### Step 3: Integrate in REW
+### Step 3: Integrate the Delta Curves
 
 The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizard)](https://www.roomeqwizard.com/). This process allows us to combine your personal hearing delta with objective headphone measurements and target curves.
+
+If we follow Approach 1, we possibly have double compensations. For Approaches 2-3, if we have played back the audio in a "neutralized" way, the delta is (hopefully) closer to the actual listener delta. In any case, the integration of the curves in REW is the same.
 
 1. **Import Data**: Open REW (instructions based on V5.40 Beta 111). Go to **File -> Import -> Import Frequency Response** and load your three core CSV files:
    * **HearCal Delta**: The file you just saved from the HearCal app.
@@ -171,7 +210,7 @@ The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizar
    * Click the **"Arithmetic"** button in the All SPL tab.
    * For **A**, select your target curve (e.g., Harman Over-Ear 2018).
    * For **B**, select your HearCal delta curve.
-   * Select the **"A + B"** operation and hit **"Generate"**.
+   * Select the **"A + B"** operation in the logarithmic domain and hit **"Generate"**.
 
    <img width="980" height="197" alt="image" src="https://github.com/user-attachments/assets/a69a7290-bf8f-4d18-b856-5bb17842a261" />
    <img width="341" height="308" alt="image" src="https://github.com/user-attachments/assets/4487277e-bc29-4d18-9879-7f4f9c1bd611" />
@@ -186,6 +225,8 @@ The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizar
    - Treat the “Target + Delta” approach as experimental and validate by A/B testing and mix translation.
    - In some cases, applying the delta as a small, smoothed “preference / monitoring correction” on top of an existing headphone EQ may work better than using “Target + Delta” to derive a new measurement-based EQ.
    - If you want the delta to represent *mostly the listener residual*, first EQ the headphone close to the chosen target (e.g., with an oratory1990/AutoEQ profile), then run HearCal with that EQ active.
+
+   (see section above, "Methodologies for Applying Calibration Deltas" for a discussion)
 
    Safety / sanity check: If your delta (or resulting EQ) suggests large or narrow corrections (e.g., >6 dB in any band or very high-Q “spikes”), treat it as unreliable—retest on another day, smooth/average results, and limit EQ to a few broad bands (prefer ≤3–6 dB total adjustment).
 
@@ -236,7 +277,7 @@ The curve saved by HearCal can be loaded as a measurement in [REW (Room EQ Wizar
 8. **Final Considerations**: 
    * You now have a TXT file containing EqualizerAPO filters.
    * If using **FabFilter Pro-Q 3**, you must multiply the Q factor by **1.41** for the filters to behave correctly.
-   * Always use **minimal-phase filters** in your equalizer.
+   * Always use **minimum-phase filters** in your equalizer.
 
 ### Step 4: Create Equalizer Configuration
 
@@ -319,6 +360,6 @@ METRIC EXPLANATIONS:
 ---
 
 ## 6. Ideas
-* Limit the shuffling in verification mode to specific band widths in order to have neighoring frequencies that compare better.
+* Limit the shuffling in verification mode to specific band widths in order to have neighboring frequencies that compare better.
 * Option to discard outliers in the averaging. If one trial shows a +10 dB boost at 8 kHz and the others show +2 dB, don't average it, but delete it. That was likely a measurement error (e.g., the headphone moved on your head).
-
+* 1000Hz anchor may tilt everything if the user has a dip or peak at exactly this frequency. It might make sense to verify the anchor: the user compares 1kHz vs. 500Hz and 1kHz vs. 2kHz at the very beginning to ensure their "Zero Point" is actually stable
