@@ -88,6 +88,8 @@ The most important point is: choose one SPL loudness and calibrate to the loudne
 #### Headphone Calibration with an SPL Meter
 To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** or **C-weighting** and a **Slow** response time. Be aware that the approach shown below will not yield exact results and may easily be off by a few dBs.
 
+**NOTE**: as HearCal needs headroom to adjust the level upwards, audio cannot be play at 0 in HearCal to match an external calibration. As a result, I suggest, for now, to calibrate to 1000Hz (the reference tone) in HearCal to the target level. So in the end you will need a loudness calibration within HearCal (due to the required headroom for testing) and outside of HearCal to that same level.
+
 While C-weighting is often used for room calibration, **A-weighting** is sometimes recommended by experienced mixers here for a specific reason:
 * **Sub-bass filtering:** Sub-bass produces a massive amount of physical energy that registers high on a meter, but for many people, it is much less "present" in their actual hearing than the mids and highs. 
 * **Focusing the Measurement:** By using A-weighting (which rolls off the extreme lows), you effectively filter out that sub-bass energy from the measurement. This ensures you are calibrating the loudness based on the frequencies where your hearing is most sensitive, preventing the sub-bass from "tricking" the meter into thinking the volume is louder than it feels.
