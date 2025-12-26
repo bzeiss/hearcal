@@ -119,6 +119,8 @@ The objective of this phase is to establish a baseline by matching the perceived
 4. **Adjust Volume**: Use the **`[UP/DOWN]`** cursor keys to change the level of the test tone until it sounds exactly as loud as the 1000Hz reference.
 5. **Navigate Bands**: Use **`[LEFT/RIGHT]`** cursor keys to move to the next frequency band. Perform this adjustment for all 31 ISO bands.
 
+Bear in mind that most headphones may have limitations in their frequency response. Models like the Sennheiser HD650 roll off the low end. As a result, you probably will not hear a lot in the tests in those frequency areas. If you don't hear anything, don't move up the level a lot. I suggest upper and lower limits of max. 5-6 dBs. If you know the frequency response of your headphone and know that it's correct that you don't hear a lot at a specific frequency, don't adjust the volume as in the end this will only tamper with the target curve. Make notes of your decisions on things like that as you'll need these notes when you repeat the tests.
+
 #### Phase 2: Verification (The "Reality Check")
 
 Phase 1 establishes an initial estimate. Phase 2 is where perceptual bias is actively challenged, and results should not be considered reliable unless they hold up under shuffle and level-adjusted testing.
