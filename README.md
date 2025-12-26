@@ -121,7 +121,7 @@ The objective of this phase is to establish a baseline by matching the perceived
 
 #### Phase 2: Verification (The "Reality Check")
 
-Phase 1 establishes an initial estimate. Phase 2 is where perceptual bias is actively challenged, and results should not be considered reliable unless they hold up under shuffle and pulse-only testing.
+Phase 1 establishes an initial estimate. Phase 2 is where perceptual bias is actively challenged, and results should not be considered reliable unless they hold up under shuffle and level-adjusted testing.
 
 Press **`[V]`** to enter the refinement screen. This phase uses a more advanced methodology to eliminate "loudness adaptation"—the phenomenon where your brain adjusts to a sound, making it seem quieter than it actually is.
 
@@ -129,7 +129,7 @@ Press **`[V]`** to enter the refinement screen. This phase uses a more advanced 
 * If the second tone sounds louder than the first, press **`[DOWN]`**.
 * If the second tone sounds quieter, press **`[UP]`**.
 
-* **Pulse-Only Mode [P]**: Press **`[P]`** to disable the anchor and play only the level-adjusted pulse of the current frequency. This helps you hear how a frequency sits in isolation. In this mode, step through the frequency bands by pressing **`[LEFT]`** and **`[RIGHT]`** and compare whether they are the perceived same loudness next to each other. If not, adjust them.
+* **Level Adjusted Only Mode [P]**: Press **`[P]`** to disable the anchor and play only the level-adjusted pulse of the current frequency. This helps you hear how a frequency sits in isolation. In this mode, step through the frequency bands by pressing **`[LEFT]`** and **`[RIGHT]`** and compare whether they are the perceived same loudness next to each other. If not, adjust them.
 * **Shuffle Mode [R]**: Press **`[R]`** to randomize the order of the frequency bands. This is the most critical step; it prevents your brain from "expecting" the next sound and forces an honest comparison between unrelated frequencies (e.g., comparing 60Hz directly after 8kHz).
 * **Ascending Mode [A]**: Press **`[A]`** to restore the standard frequency order for a final sweep to ensure the loudness feels smooth and linear from bottom to top.
 
