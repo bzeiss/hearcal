@@ -386,5 +386,11 @@ METRIC EXPLANATIONS:
 
 ## 7. Ideas
 * Limit the shuffling in verification mode to specific band widths in order to have neighboring frequencies that compare better.
+* Averaging: flag bands where variance exceeds the measured offset: ∣x∣/s -> > 2: Probably real, 1–2: Uncertain, < 1: Likely noise — don't correct this band
 * Option to discard outliers in the averaging. If one trial shows a +10 dB boost at 8 kHz and the others show +2 dB, don't average it, but delete it. That was likely a measurement error (e.g., the headphone moved on your head).
 * 1000Hz anchor may tilt everything if the user has a dip or peak at exactly this frequency. It might make sense to verify the anchor: the user compares 1kHz vs. 500Hz and 1kHz vs. 2kHz at the very beginning to ensure their "Zero Point" is actually stable
+* Implement 2AFC mode — Present two intervals and force a binary "first louder" or "second louder" response for cleaner data
+* Band-limited pink noise option — Matching narrow-band noise may be more ecologically valid than pure tones for music mixing purposes
+* Correlation with audiometry — If users have audiograms, provide a comparison tool to check if HearCal results correlate with clinical findings
+
+
