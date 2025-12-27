@@ -114,14 +114,14 @@ Perceived loudness is not consistent across all frequencies at all volume levels
 
 The ideal level, according to this often cited work, for mixing with the most balanced perception of all frequencies—while remaining safe and bearable—is generally considered to be **83 dB to 85 dB SPL** as a room calibration convention. To my knowledge, there is no universal standard like this for headphones currently. So these values may or may not apply.
 
-#### Why 85 dB?
+#### Why 83-85 dB?
 Human hearing is naturally non-linear. At low volumes (around 40–60 dB), your ears are much less sensitive to low and high frequencies, causing the midrange (especially 3–4 kHz) to sound disproportionately loud. As volume increases, these curves "flatten out," allowing you to perceive the bass and treble more accurately in relation to the mids.
 
 * **The "Flattest" Level:** The curves continue to flatten as volume increases toward the threshold of pain (120+ dB). However, mixing at 100+ dB is not bearable for more than a few minutes and will cause rapid ear fatigue and permanent hearing damage.
-* **The Industry Standard:** The 85 dB SPL figure is the recognized standard for cinema and large professional studios. At this level, the frequency response is flat enough to make accurate EQ decisions without endangering your hearing.
+* **The Industry Standard:** The 83-85 dB SPL figure is a recognized standard for cinema and large professional studios. At this level, the frequency response is flat enough to make accurate EQ decisions without endangering your hearing.
 
 #### Practical Considerations for "Bearability"
-While 85 dB is the theoretical sweet spot for room calibration, it can be fatiguing over a long 8-hour session. Many engineers follow these practical guidelines:
+While 83-85 dB is the theoretical sweet spot for room calibration, it can be fatiguing over a long 8-hour session. Many engineers follow these practical guidelines:
 
 * **Small Rooms/Headphones:** Due to ear fatigue, many professionals prefer monitoring at **76 dB to 80 dB SPL** for the bulk of a session.
 * **The "Check" Method:** It is common practice to do the majority of the work at a moderate level (75–80 dB) and then turn the volume up to **85 dB** specifically for "checking" the low-end and high-end balance before turning it back down. Also bear in mind that some headphones may show more clarity and bass punch at higher levels 80-85 dB. It's unclear whether there is real scientific work on this.
@@ -131,7 +131,13 @@ The most important point is: choose one SPL loudness and calibrate to the loudne
 #### Headphone Calibration with an SPL Meter
 To achieve the most accurate results based on the Fletcher-Munson principles, you should set your SPL meter to **A-weighting** or **C-weighting** and a **Slow** response time. Be aware that the approach shown below will not yield exact results and may easily be off by a few dBs.
 
-**NOTE**: as HearCal needs headroom to adjust the level upwards, audio cannot be played at 0 in HearCal to match an external calibration. As a result, I suggest, for now, to calibrate to 1000Hz (the reference tone) in HearCal to the target level. So in the end you will need a loudness calibration within HearCal (due to the required headroom for testing) and outside of HearCal to that same level.
+**NOTE**: HearCal includes a built-in calibration screen (press **`[C]`**) where you can select from four standard reference levels:
+* **-18 dBFS RMS (L/R AVG)**: EBU R128, Common Home Studio
+* **-20 dBFS RMS (L/R AVG)**: K-20, ATSC A/85, SMPTE RP 200
+* **-14 dBFS RMS (L/R AVG)**: K-14
+* **-12 dBFS RMS**: K-12
+
+Use the calibration screen to play pink, white, or brown noise at your selected reference level and adjust your hardware volume to match your target SPL (e.g., 79-85 dB). The selected reference level will be used globally for all tone generation during testing. 
 
 While C-weighting is often used for room calibration, **A-weighting** is sometimes recommended by experienced mixers here for a specific reason:
 * **Sub-bass filtering:** Sub-bass produces a massive amount of physical energy that registers high on a meter, but for many people, it is much less "present" in their actual hearing than the mids and highs. 
@@ -140,12 +146,15 @@ While C-weighting is often used for room calibration, **A-weighting** is sometim
 C-weighting may be used if you prefer aligning physical energy rather than perceptual loudness, but consistency is more important than choice. The jury is still out on this.
 
 **Calibration Procedure:**
-1.  **Set Meter:** Select your weighting choice and **Slow** response (this averages the "peaks" and "valleys" of the noise over 1 second for a steady reading).
-2.  **Signal:** Play **Pink Noise** (some mixers prefer brown noise or variations of brown noise) through one side of your headphones.
-3.  **Target:** Position your SPL meter (or phone app) against the headphone driver and adjust your hardware volume until you hit your chosen level (**79–85 dB**).
-4.  **Hardware Marker:** Ideally, connect your amp to a fixed line-out (so levels aren't tied to an interface knob) and put a physical marker on your headphone amp volume knob. **This is now your reference level for the entire calibration.**
+1.  **Launch HearCal:** Start the application and press **`[C]`** to enter the SPL calibration screen.
+2.  **Select Reference Level:** Use **`[LEFT/RIGHT]`** to select the left column and **`[UP/DOWN]`** to choose your preferred reference level (e.g., -18 dBFS RMS for EBU R128). 
+3.  **Select Noise Type:** Use **`[LEFT/RIGHT]`** to switch to the right column and **`[UP/DOWN]`** to choose white, pink, or brown noise.
+4.  **Set Meter:** Configure your SPL meter to your chosen weighting (**A** or **C**) and **Slow** response.
+5.  **Target:** Position your SPL meter against the headphone driver and adjust your hardware volume until you reach your target level (**79–85 dB**).
+6.  **Hardware Marker:** Put a physical marker on your headphone amp volume knob. **This is now your reference level for the entire calibration.**
+7.  **Exit:** Press **`[ESC]`** to return to the main screen. The selected reference level will be used for all tone generation.
 
-You now have calibrated your headphones "externally" to the target level(s) you should mix at. HearCal does not play back at that same output target volume as it needs some headroom for the level adjustment. More on that below in Step 2.
+You now have calibrated your headphones to your target SPL. The selected reference level determines the RMS amplitude of all test tones during the calibration process. Make sure to use this same SPL target (e.g., 85 dB) when mixing outside of HearCal. This hardware volume setting should be used consistently for all your mixing work.
 
 ### Step 2: Run HearCal
 
