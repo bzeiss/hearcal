@@ -75,7 +75,7 @@ pip install textual numpy pandas scipy sounddevice
 
 Before we dive into how to use HearCal, we must decide which correction approach we want to take as it may affect how we play back audio through HearCal. Once you have derived your personalized delta curves using HearCal, the critical task is integrating this data into your monitoring chain. The following methodologies outline the different paths you can take. We must acknowledge that none of these approaches perfectly separate "your hearing" from "your headphones" and "your fit." Each method reduces certain sources of error while accepting others. The goal is useful approximation, not clinical precision.
 
-### Approach 1: The "Direct" Method
+### Approach 1: The "Direct" Method (estimated prevision: low)
 
 In this approach, you run HearCal on the raw, unequalized output of your headphones. 
 
@@ -83,14 +83,14 @@ In this approach, you run HearCal on the raw, unequalized output of your headpho
 * **The Risk of Double-Correction:** The biggest danger here is "Double Compensation." If you later apply a standard calibration preset using a headphone measurement (be it generalized or specific for your headphone), you will be fixing the same hardware flaws twice. 
 * **The Problem with Raw Resonances:** Even though HearCal uses noise and warble tones to help you hear through peaks, running a test on uncorrected headphones means you are often pushing the driver into its non-linear range. If your headphones have a massive +8dB resonance at 6kHz, your brain has to work much harder to judge loudness accurately in that area. This can lead to a "tilted" delta curve that is more about fighting the headphone's character than mapping your actual hearing.
 
-### Approach 2: The "Neutralized" Method
+### Approach 2: The "Neutralized" Method (estimated precision: low)
 
 This method attempts to isolate your unique hearing profile by first "zeroing out" the hardware variables of the headphone.
 
 * **The Logic:** You apply a baseline EQ to make the headphones "flat" (Diffuse Field) before starting the HearCal test. It is vital that this baseline is "rig-specific." If the measurements for your headphones were taken on a **GRAS 43AG/45BC** (the industry standard for years), you must use a GRAS Diffuse Field target. If they were taken on the newer **B&K 5128**, use that specific 5128 diffuse field target. These rigs simulate the human ear differently, and mixing them up will introduce mathematical errors.
 * **The Benefit:** By neutralizing the headphones first, you ensure that HearCal is only measuring the **Transfer Function Delta**—the difference between a "standardized average ear" and your actual anatomy. This minimizes the influence of manufacturing tolerances and prevents the headphones' specific "flavor" from biasing your loudness matching.
 
-### Approach 3: The "Hybrid Integration" Method (Recommended)
+### Approach 3: The "Hybrid Integration" Method (estimated precision: better, but still uncertain)
 
 To achieve a better level of monitoring transparency, we use a multi-stage process that accounts for both hardware variance and the natural "mood swings" of human hearing.
 
