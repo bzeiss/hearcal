@@ -433,6 +433,14 @@ class VerificationScreen(Screen):
             test_tone = self.app.audio_cache[cache_key]
             self.app.audio_engine.play(test_tone, loop=True)
 
+    def on_key(self, event):
+        """Block keys that could cause issues in verification mode."""
+        if event.key in ("c", "l", "s", "t"):
+            event.prevent_default()
+            event.stop()
+            return
+        # Let other keys propagate normally
+    
     def action_dismiss_screen(self):
         self.app.audio_engine.clear()
         self.dismiss()
