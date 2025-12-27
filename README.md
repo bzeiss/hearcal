@@ -24,8 +24,8 @@ Be aware that real hearing loss cannot be compensated with this tool.
 
 HearCal is a cross-platform command-line application with a Terminal User Interface (TUI). It is designed to be lightweight, easy to adapt, and low-maintenance. While it requires basic technical knowledge to run, the calibration process itself is intuitive.
 
-<img width="836" height="673" alt="image" src="https://github.com/user-attachments/assets/4af636a1-5fda-4d48-86e0-2a7a867aa580" />
-<img width="828" height="668" alt="image" src="https://github.com/user-attachments/assets/77499283-44fc-4111-80ba-1fba7ceed764" />
+<img width="1253" height="807" alt="image" src="https://github.com/user-attachments/assets/34ae898b-8a05-4889-9480-4307b90a382c" />
+<img width="817" height="550" alt="image" src="https://github.com/user-attachments/assets/362b7c16-937e-4db3-a79a-88c831fbe942" />
 
 ### Project Status & Disclaimers
 
@@ -153,6 +153,8 @@ C-weighting may be used if you prefer aligning physical energy rather than perce
 5.  **Target:** Position your SPL meter against the headphone driver and adjust your hardware volume until you reach your target level (**79–85 dB**).
 6.  **Hardware Marker:** Put a physical marker on your headphone amp volume knob. **This is now your reference level for the entire calibration.**
 7.  **Exit:** Press **`[ESC]`** to return to the main screen. The selected reference level will be used for all tone generation.
+
+<img width="890" height="327" alt="image" src="https://github.com/user-attachments/assets/1f064c3b-e5ed-45ce-8359-fc556644d74c" />
 
 You now have calibrated your headphones to your target SPL. The selected reference level determines the RMS amplitude of all test tones during the calibration process. Make sure to use this same SPL target (e.g., 85 dB) when mixing outside of HearCal. This hardware volume setting should be used consistently for all your mixing work.
 
