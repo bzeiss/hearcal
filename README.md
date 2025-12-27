@@ -347,7 +347,7 @@ You can (and actually **SHOULD**) use the tool hearcal_avg.py to calculate an av
 * hearcal_avg.csv containing the average calibrated profiles
 * hearcal_avg_details.csv containing average, minimum measurement, maximum measure, standard deviation, variance and spread for each frequency measure across multiple tests
 
-It will also display a brief report with the statistics across multiple tests. It looks something like this:
+It will also display a brief report with the statistics across multiple tests. It looks something like this (please disregard the unrealistically low amount of differences between the tests, these were test files):
 
 ```
 ===========================================================================
