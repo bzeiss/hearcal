@@ -27,7 +27,35 @@ from textual.message import Message
 LFO_RATE = 4.0        # Hz: Psychoacoustic rate to bypass neural adaptation
 LFO_DEPTH = 0.05      # 5%: Prevents standing waves
 SAMPLE_RATE = 44100
-BASE_AMPLITUDE = 0.2  # Output level with headroom for gain adjustments (20% = -14 dBFS)  
+
+# Reference levels for calibration
+# These are RMS amplitude values - noise normalized to RMS=1 is scaled by these
+REFERENCE_LEVELS = [
+    {
+        "name": "-18 dBFS RMS (L/R AVG)",
+        "desc": "EBU R128, Common Music Studio",
+        "amplitude": 10**(-18/20),  # 0.1259 RMS
+        "dbfs": -18
+    },
+    {
+        "name": "-20 dBFS RMS (L/R AVG)",
+        "desc": "K-20, ATSC A/85, SMPTE RP 200",
+        "amplitude": 10**(-20/20),  # 0.1 RMS
+        "dbfs": -20
+    },
+    {
+        "name": "-14 dBFS RMS (L/R AVG)",
+        "desc": "K-14",
+        "amplitude": 10**(-14/20),  # 0.1995 RMS
+        "dbfs": -14
+    },
+    {
+        "name": "-12 dBFS RMS",
+        "desc": "K-12",
+        "amplitude": 10**(-12/20),  # 0.2512 RMS
+        "dbfs": -12
+    }
+]
 
 ISO_FREQS = [
     1000.0, 40.0, 4000.0, 125.0, 800.0, 25.0, 500.0, 12500.0, 63.0, 2500.0, 20.0, 
@@ -134,6 +162,142 @@ class FileBrowserScreen(Screen):
     def on_input_submitted(self, event: Input.Submitted) -> None:
         self.action_submit()
 
+class LoudnessCalibrationScreen(Screen):
+    BINDINGS = [
+        Binding("escape", "dismiss_screen", "Exit")
+    ]
+
+    def __init__(self):
+        super().__init__()
+        self.noise_type = "white"  # "white", "pink", "brown"
+        self.active_panel = "level"  # "level" or "noise”
+        self.noise_cache = {}  # Cache for generated noise: (noise_type, level_idx) -> samples
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="cal_container"):
+            yield Label("SPL CALIBRATION")
+            yield Static("[←/→] panel  [↑/↓] select  [ESC] exit")
+            with Horizontal(id="cal_panels"):
+                with Vertical(id="level_panel", classes="cal_column"):
+                    yield Label("Reference Level", classes="cal_header")
+                    yield Label("", id="level_opt1")
+                    yield Label("", id="level_opt2")
+                    yield Label("", id="level_opt3")
+                    yield Label("", id="level_opt4")
+                with Vertical(id="noise_panel", classes="cal_column"):
+                    yield Label("Noise Type", classes="cal_header")
+                    yield Label("", id="noise_opt1")
+                    yield Label("", id="noise_opt2")
+                    yield Label("", id="noise_opt3")
+
+    def on_mount(self):
+        self.update_display()
+        self.play_noise()
+    
+    def on_key(self, event):
+        """Handle arrow key navigation."""
+        if event.key == "left":
+            self.active_panel = "level"
+            self.update_display()
+        elif event.key == "right":
+            self.active_panel = "noise"
+            self.update_display()
+        elif event.key == "up":
+            if self.active_panel == "level":
+                self.app.reference_level_idx = max(0, self.app.reference_level_idx - 1)
+            else:
+                noise_order = ["white", "pink", "brown"]
+                idx = noise_order.index(self.noise_type)
+                self.noise_type = noise_order[(idx - 1) % len(noise_order)]
+            self.update_display()
+            self.play_noise()
+        elif event.key == "down":
+            if self.active_panel == "level":
+                self.app.reference_level_idx = min(len(REFERENCE_LEVELS) - 1, self.app.reference_level_idx + 1)
+            else:
+                noise_order = ["white", "pink", "brown"]
+                idx = noise_order.index(self.noise_type)
+                self.noise_type = noise_order[(idx + 1) % len(noise_order)]
+            self.update_display()
+            self.play_noise()
+
+    def update_display(self):
+        """Update display with current selections."""
+        # Update active column styling
+        level_panel = self.query_one("#level_panel")
+        noise_panel = self.query_one("#noise_panel")
+        
+        if self.active_panel == "level":
+            level_panel.add_class("active_column")
+            noise_panel.remove_class("active_column")
+        else:
+            noise_panel.add_class("active_column")
+            level_panel.remove_class("active_column")
+        
+        # Level options - display all 4 reference levels
+        for i in range(4):
+            marker = "> " if self.app.reference_level_idx == i else "  "
+            level_info = REFERENCE_LEVELS[i]
+            self.query_one(f"#level_opt{i+1}").update(
+                f"{marker}{level_info['name']} ({level_info['desc']})"
+            )
+        
+        # Noise options
+        noise1_marker = "> " if self.noise_type == "white" else "  "
+        noise2_marker = "> " if self.noise_type == "pink" else "  "
+        noise3_marker = "> " if self.noise_type == "brown" else "  "
+        
+        self.query_one("#noise_opt1").update(f"{noise1_marker}White Noise")
+        self.query_one("#noise_opt2").update(f"{noise2_marker}Pink Noise")
+        self.query_one("#noise_opt3").update(f"{noise3_marker}Brown Noise")
+
+    def generate_noise(self, duration=10.0):
+        """Generate RMS-normalized broadband noise at exact target level."""
+        samples = int(SAMPLE_RATE * duration)
+        
+        # Get target RMS from reference level
+        target_rms = REFERENCE_LEVELS[self.app.reference_level_idx]["amplitude"]
+        
+        if self.noise_type == "white":
+            # White noise: generate directly with target RMS as scale parameter
+            # For zero-mean Gaussian noise: RMS = standard deviation
+            noise = np.random.normal(loc=0.0, scale=target_rms, size=samples)
+        elif self.noise_type == "pink":
+            # Pink noise: -3dB/octave using proper filtering
+            white = np.random.normal(0, 1, samples)
+            # Design pink filter using cascaded poles (Voss algorithm approximation)
+            b = np.array([0.049922035, -0.095993537, 0.050612699, -0.004408786])
+            a = np.array([1, -2.494956002, 2.017265875, -0.522189400])
+            noise = signal.lfilter(b, a, white)
+            # Normalize to exact target RMS
+            current_rms = np.sqrt(np.mean(noise**2))
+            if current_rms > 0:
+                noise = noise * (target_rms / current_rms)
+        else:  # brown
+            # Brown noise: -6dB/octave (integrated white noise with leak)
+            white = np.random.normal(0, 1, samples)
+            # Use leaky integrator with coefficient tuned to match reference
+            # 0.9995 balances bass energy to match reference brown noise spectrum
+            noise = signal.lfilter([1.0], [1.0, -0.9995], white)
+            # Normalize to exact target RMS
+            current_rms = np.sqrt(np.mean(noise**2))
+            if current_rms > 0:
+                noise = noise * (target_rms / current_rms)
+        
+        return noise.astype(np.float32)
+
+    def play_noise(self):
+        # Use cached noise to avoid regeneration delays
+        cache_key = (self.noise_type, self.app.reference_level_idx)
+        if cache_key not in self.noise_cache:
+            self.noise_cache[cache_key] = self.generate_noise()
+        noise_signal = self.noise_cache[cache_key]
+        self.app.audio_engine.play(noise_signal, loop=True)
+
+    def action_dismiss_screen(self):
+        self.app.audio_engine.clear()
+        self.dismiss()
+
 class VerificationScreen(Screen):
     BINDINGS = [
         Binding("escape", "dismiss_screen", "Exit"),
@@ -169,6 +333,7 @@ class VerificationScreen(Screen):
                 markup=False
             )
             yield Label("", id="play_mode_label", classes="mode-indicator")
+            yield Label("", id="v_ref_level_label", classes="mode-indicator")
             yield Label("", id="v_freq_label")
             yield Label("", id="v_db_label", classes="mode-indicator")
             yield Label("", id="v_waveform_label", classes="mode-indicator")
@@ -184,8 +349,11 @@ class VerificationScreen(Screen):
         db = self.results.get(freq, 0.0)
         mode_txt = "MODE: ANCHOR-GAP-TEST" if self.mode_sequence else "MODE: LEVEL ADJUSTED ONLY"
         waveform_txt = f"WAVEFORM: {self.app.waveform_types[self.app.waveform_idx].upper()}"
+        ref_level = REFERENCE_LEVELS[self.app.reference_level_idx]
+        ref_level_txt = f"LEVEL: {ref_level['name']} ({ref_level['desc']})"
         
         self.query_one("#play_mode_label").update(mode_txt)
+        self.query_one("#v_ref_level_label").update(ref_level_txt)
         self.query_one("#v_freq_label").update(
             f"Band {self.v_idx + 1}/{len(self.freq_list)}: [b]{int(freq)} Hz[/b]"
         )
@@ -240,14 +408,29 @@ class VerificationScreen(Screen):
     def action_play_audio(self):
         freq = self.freq_list[self.v_idx]
         db = self.results.get(freq, 0.0)
-        test_tone = self.app.generate_seamless_warble(freq, db, 1.2)
         
         if self.mode_sequence:
-            ref = self.app.generate_seamless_warble(1000.0, 0.0, 1.2)
+            # Anchor-gap-test: short 2.0s tones for sequence
+            # Use main app's cache for both ref and test tones
+            ref_key = (1000.0, 0.0, self.app.waveform_idx, self.app.reference_level_idx, False)
+            if ref_key not in self.app.audio_cache:
+                self.app.audio_cache[ref_key] = self.app.generate_seamless_warble(1000.0, 0.0, 2.0, for_looping=False)
+            ref = self.app.audio_cache[ref_key]
+            
+            test_key = (freq, db, self.app.waveform_idx, self.app.reference_level_idx, False)
+            if test_key not in self.app.audio_cache:
+                self.app.audio_cache[test_key] = self.app.generate_seamless_warble(freq, db, 2.0, for_looping=False)
+            test_tone = self.app.audio_cache[test_key]
+            
             silence = np.zeros(int(SAMPLE_RATE * 0.3), dtype=np.float32)
             self.app.audio_engine.play(np.concatenate([ref, silence, test_tone]), loop=False)
         else:
-            # Level Adjusted Only mode: continuous looping
+            # Level Adjusted Only mode: long duration for seamless looping
+            # Use main app's cache
+            cache_key = (freq, db, self.app.waveform_idx, self.app.reference_level_idx, True)
+            if cache_key not in self.app.audio_cache:
+                self.app.audio_cache[cache_key] = self.app.generate_seamless_warble(freq, db, 2.0, for_looping=True)
+            test_tone = self.app.audio_cache[cache_key]
             self.app.audio_engine.play(test_tone, loop=True)
 
     def action_dismiss_screen(self):
@@ -329,6 +512,7 @@ class HearCal(App):
         Binding("t", "toggle_tone", "Toggle"), 
         Binding("space", "play_stop", "Play/Stop"),
         Binding("v", "enter_verify", "Verify"), 
+        Binding("c", "enter_calibration", "Calibrate"),
         Binding("left", "prev_freq", "Prev"),
         Binding("right", "next_freq", "Next"), 
         Binding("up", "gain_up", "+0.5dB"),
@@ -342,6 +526,35 @@ class HearCal(App):
     #main_container, #verify_container { 
         width: 85; height: auto; border: thick $primary; 
         padding: 1; background: $surface; 
+    }
+    #cal_container {
+        width: 95; height: auto;
+        border: thick $primary; padding: 1; background: $surface;
+    }
+    #cal_panels {
+        height: auto; margin: 0; padding: 0;
+    }
+    #cal_container Horizontal {
+        height: auto; margin: 0; padding: 0;
+    }
+    #cal_container Vertical {
+        height: auto;
+    }
+    .cal_column {
+        padding: 1; border: solid transparent; height: auto;
+    }
+    #level_panel {
+        width: 3fr;
+    }
+    #noise_panel {
+        width: 1fr;
+    }
+    .cal_column.active_column {
+        border: solid $accent;
+    }
+    .cal_header {
+        text-align: center; text-style: bold;
+        margin: 0; padding: 0;
     }
     Horizontal { height: auto; align: center middle; margin: 1 0; }
     #db_display { 
@@ -383,6 +596,8 @@ class HearCal(App):
         self.audio_engine = AudioEngine()
         self.waveform_types = ["sine", "noise"]
         self.waveform_idx = 0
+        self.reference_level_idx = 0  # Default to -18 dBFS (EBU R128)
+        self.audio_cache = {}  # Cache: (freq, gain, waveform_idx, ref_level_idx) -> samples
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -396,6 +611,7 @@ class HearCal(App):
                 markup=False
             )
             yield Label("MODE: REFERENCE (1000Hz)", id="mode_label", classes="mode-indicator")
+            yield Label("", id="ref_level_label", classes="mode-indicator")
             yield Label(id="freq_label")
             yield Static(id="db_display")
             yield Label("", id="waveform_label", classes="mode-indicator")
@@ -411,8 +627,11 @@ class HearCal(App):
         db = self.results.get(freq, 0.0)
         mode_txt = "MODE: REFERENCE" if self.active_mode == "REF" else f"MODE: TESTING ({int(freq)}Hz)"
         waveform_txt = f"WAVEFORM: {self.waveform_types[self.waveform_idx].upper()}"
+        ref_level = REFERENCE_LEVELS[self.reference_level_idx]
+        ref_level_txt = f"LEVEL: {ref_level['name']} ({ref_level['desc']})"
         
         self.query_one("#mode_label").update(mode_txt)
+        self.query_one("#ref_level_label").update(ref_level_txt)
         self.query_one("#freq_label").update(
             f"Band {self.current_idx + 1}/{len(ISO_FREQS)}: [b]{int(freq)} Hz[/b]"
         )
@@ -423,36 +642,71 @@ class HearCal(App):
         if self.is_playing:
             self.run_audio()
 
-    def generate_seamless_warble(self, freq, gain_db, target_duration=2.0):
+    def generate_seamless_warble(self, freq, gain_db, target_duration=2.0, for_looping=False):
+        # For noise in looping mode, use much longer duration to minimize loop clicks
+        waveform_type = self.waveform_types[self.waveform_idx]
+        if waveform_type == "noise" and for_looping:
+            target_duration = 15.0  # 15 seconds for looping noise
+        
         lfo_samples = SAMPLE_RATE / LFO_RATE
         total_samples = int(max(1, round(target_duration * LFO_RATE)) * lfo_samples)
         t = np.linspace(0, total_samples / SAMPLE_RATE, total_samples, endpoint=False)
         phase = 2 * np.pi * (freq * t - (freq * LFO_DEPTH / (2 * np.pi * LFO_RATE)) * np.cos(2 * np.pi * LFO_RATE * t))
         
         # Generate waveform based on current type
-        waveform_type = self.waveform_types[self.waveform_idx]
+        target_rms = REFERENCE_LEVELS[self.reference_level_idx]["amplitude"]
+        gain_linear = 10**(gain_db / 20.0)
+        
         if waveform_type == "sine":
+            # Sine wave: to get RMS = target_rms * gain, peak must be target_rms * gain * sqrt(2)
             wave = np.sin(phase)
+            final_rms = target_rms * gain_linear
+            final_wave = wave * final_rms * np.sqrt(2)
         elif waveform_type == "noise":
-            # Generate bandpassed white noise
+            # Generate bandpassed white noise with crossfade for seamless looping
             width_hz = 200.0
-            noise = np.random.normal(0, 1, total_samples)
+            taps = 2001
+            transient_samples = taps
+            crossfade_samples = int(SAMPLE_RATE * 0.05)  # 50ms crossfade
+            
+            # Generate extra samples for transients and crossfade
+            noise = np.random.normal(0, 1, total_samples + 2 * transient_samples + crossfade_samples)
+            
             # Steep FIR bandpass filter with boundary checking
             nyquist = SAMPLE_RATE / 2
-            low_cutoff = max(20.0, freq - width_hz/2)  # Keep above 20Hz
-            high_cutoff = min(nyquist * 0.95, freq + width_hz/2)  # Keep below Nyquist
-            taps = 2001
+            low_cutoff = max(20.0, freq - width_hz/2)
+            high_cutoff = min(nyquist * 0.95, freq + width_hz/2)
             b = signal.firwin(taps, [low_cutoff, high_cutoff], 
                             pass_zero=False, fs=SAMPLE_RATE)
-            wave = signal.lfilter(b, 1.0, noise)
-            # RMS normalization to match sine wave RMS (1/sqrt(2))
-            rms = np.sqrt(np.mean(wave**2))
-            if rms > 0:
-                wave = wave / rms / np.sqrt(2)  # Divide by sqrt(2) to match sine wave RMS
+            filtered = signal.lfilter(b, 1.0, noise)
+            
+            # Extract stable region
+            wave = filtered[transient_samples:transient_samples + total_samples + crossfade_samples]
+            
+            # Apply crossfade at loop boundary
+            fade_out = np.linspace(1.0, 0.0, crossfade_samples)
+            fade_in = np.linspace(0.0, 1.0, crossfade_samples)
+            
+            # Crossfade end with beginning
+            wave[-crossfade_samples:] = (wave[-crossfade_samples:] * fade_out + 
+                                          wave[:crossfade_samples] * fade_in)
+            
+            # Trim to final length
+            wave = wave[:total_samples]
+            
+            # Normalize to exact target RMS
+            current_rms = np.sqrt(np.mean(wave**2))
+            final_rms = target_rms * gain_linear
+            if current_rms > 0:
+                final_wave = wave * (final_rms / current_rms)
+            else:
+                final_wave = wave
         else:
             wave = np.sin(phase)
+            final_rms = target_rms * gain_linear
+            final_wave = wave * final_rms * np.sqrt(2)
         
-        return (wave * (10**(gain_db / 20.0)) * BASE_AMPLITUDE).astype(np.float32)
+        return final_wave.astype(np.float32)
 
     def action_play_stop(self):
         self.is_playing = not self.is_playing
@@ -467,7 +721,13 @@ class HearCal(App):
             return
         freq = 1000.0 if self.active_mode == "REF" else ISO_FREQS[self.current_idx]
         gain = 0.0 if self.active_mode == "REF" else self.results.get(freq, 0.0)
-        self.audio_engine.play(self.generate_seamless_warble(freq, gain), loop=True)
+        
+        # Use cached audio to avoid regeneration delays (especially for 15s noise)
+        cache_key = (freq, gain, self.waveform_idx, self.reference_level_idx)
+        if cache_key not in self.audio_cache:
+            self.audio_cache[cache_key] = self.generate_seamless_warble(freq, gain, for_looping=True)
+        
+        self.audio_engine.play(self.audio_cache[cache_key], loop=True)
 
     def action_toggle_tone(self):
         self.active_mode = "TEST" if self.active_mode == "REF" else "REF"
@@ -481,6 +741,11 @@ class HearCal(App):
         if self.is_playing:
             self.action_play_stop()
         self.push_screen(VerificationScreen(self.results), callback=self._on_verify_return)
+    
+    def action_enter_calibration(self):
+        if self.is_playing:
+            self.action_play_stop()
+        self.push_screen(LoudnessCalibrationScreen())
     
     def _on_verify_return(self, _):
         """Called when verification screen is dismissed."""
