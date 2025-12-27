@@ -38,6 +38,7 @@ HearCal is a cross-platform command-line application with a Terminal User Interf
 * If your headphones have severe frequency response problems (>10 dB deviations)—fix the hardware first
 * If your mixes translate well already—don't fix what isn't broken
 * If you cannot maintain a consistent headphone fit between sessions
+* If you think this is the solution to all your mix translation problems
 
 ### Credits
 
