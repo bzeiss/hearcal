@@ -121,7 +121,8 @@ class ConverterApp:
         os_name = platform.system()
         if os_name == "Windows": return Path(os.environ['APPDATA']) / "Toneboosters/TB Equalizer Pro_programs/User/Converted"
         if os_name == "Linux": return Path.home() / ".config/Toneboosters/TB Equalizer Pro_programs/User/Converted"
-        self._dialog("macOS Path Error", "The correct preset path for macOS is unknown.", True); sys.exit()
+        if os_name == "Darwin": return Path.home() / "Music/Toneboosters/TB Equalizer Pro_programs/User/Converted"
+        self._dialog("Unknown OS", f"Unsupported operating system: {os_name}", True); sys.exit()
 
     def _dialog(self, title, msg, is_err=False):
         root = tk.Tk(); root.withdraw()
